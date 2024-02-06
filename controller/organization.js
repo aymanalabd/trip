@@ -8,19 +8,24 @@ exports.login = (req , res , next)=>{
     organization.findOne({where:{email:email}}).then(result=>{
        
         if(!result){
-            res.status(422).json('wrong email or password')
+            res.status(422).json('خطا في الايميل او كلمة المرور')
         }
         
         if(result.password!==password){
-            res.json('wrong email or password')
+            res.json('خطا في الايميل او كلمة المرور')
         }else{
            
-        const token = jwt.sign({email:email,orgid:result.id, password:password} , 'mytoken')
+        const token = jwt.sign({email:email,orgid:result.id,islogin: true , password:password} , 'mytoken')
         res.status(200).json({msg:'successfull', result:result , token : token})
         }
+    }).catch(err=>{
+        res.json(err);
     })
 }
 
+exports.getAllreserve = (req, rws , next)=>{
+
+}
  
 exports.getorg = (req , res , next)=>{
     organization.findAll().select('email').then(org=>{

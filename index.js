@@ -28,9 +28,11 @@ const bodyparser = require('body-parser')
 
 const sequelize = require('./conn/conn');
 const trip = require('./models/trip');
+const response = require('./services/response');
 const app = express();
 
 
+app.use(response.response);
 app.use(bodyparser.json());
 app.use( bodyparser.urlencoded({extended:false}))
 
@@ -72,8 +74,10 @@ custumer.belongsToMany(trip,{through:reservation});
 reservation.hasMany(disk);
 disk.belongsTo(reservation);
 //العلافة بين الانطلاق والوجهة وربطهم بجدول انطلاق-وجهة
-locations.belongsToMany(location2,{through:leftarrive});
-location2.belongsToMany(locations,{through:leftarrive});
+locations.hasMany(leftarrive);
+leftarrive.belongsTo(locations)
+location2.hasMany(leftarrive);
+leftarrive.belongsTo(location2)
 
 leftarrive.hasMany(trip);
 trip.belongsTo(leftarrive)

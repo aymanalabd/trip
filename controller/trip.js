@@ -12,7 +12,7 @@ const location2 = require('../models/location2');
 
 const leftarrive = require('../models/leftarrive');
 const trip = require('../models/trip');
-const { not } = require('joi');
+const { where, Sequelize } = require('sequelize');
 exports.addtrip = (req , res , next)=>{
     const { time , desc} = req.body;
     const busid = req.body.busid;
@@ -28,6 +28,15 @@ exports.addtrip = (req , res , next)=>{
         })
     
     
+}
+
+exports.getinfotrip = (req , res ,next)=>{
+    const id  = req.params.id;
+    trip.findOne({include:[{model:leftarrive,include:[{model:locations , attributes:["name"]} , {model:location2}]},{model:price},{model:bus}]},{where:{id:id}}).then(info=>{
+        res.json(info)
+    }).catch(err=>{
+        res.json(err)
+    })
 }
 
 

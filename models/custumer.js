@@ -45,6 +45,10 @@ const custumer = sequelize.define('custumer',{
         allowNull:false,
         
     },
+    confirmpassword:{
+        type:Sequelize.STRING,
+        allowNull:false,
+    }
    
     // isadmin:Sequelize.BOOLEAN
 })

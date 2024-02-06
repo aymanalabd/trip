@@ -8,6 +8,8 @@ const tripcon = require('../controller/trip') ;
 
 
 router.post('/addtrip' ,isorg, tripcon.addtrip);
+router.get('/gettrip/:id' , tripcon.getinfotrip);
+
 router.get('/gettrip' ,isorg, tripcon.getall)
 router.post('/updatetrip/:id' ,isorg, tripcon.updatetrip);
 
