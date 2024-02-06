@@ -106,8 +106,8 @@
                                 }
                                 exports.verifycodecustumer = (req , res , next)=>{
                                     const ver = req.body.ver;
-                                    const t = req.headers.token;
-            
+                                    const t = req.headers.authorization.split(" ")[1];
+                                    
                                     const token1 = jwt.verify( t , 'secret');
                                     const email = token1.email;
                                     custumer.findOne({where:{cusemail:email}}).then(result=>{
@@ -190,8 +190,8 @@
                                     if(!result.isEmpty()){
                                     return res.error(result);
                                     }else{
-                                    const t = req.headers.token;
-                                    const code = req.body.code;
+                                        const t = req.headers.authorization.split(" ")[1];
+                                        const code = req.body.code;
                                 const ok =  jwt.verify(t , 'verify');
                                 const code1 = ok.code;
                                 const email = ok.email;
@@ -210,8 +210,8 @@
                                     if(!result.isEmpty()){
                                     return res.error(result);
                                     }else{
-                                    const t = req.headers.token;
-                                    const j = jwt.verify(t , 'reset')
+                                        const t = req.headers.authorization.split(" ")[1];
+                                        const j = jwt.verify(t , 'reset')
                                     console.log(j)
                                     const confirm = req.body.confirmpassword;
                                     const password = req.body.password;

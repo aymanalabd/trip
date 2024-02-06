@@ -32,7 +32,7 @@ exports.addtrip = (req , res , next)=>{
 
 exports.getinfotrip = (req , res ,next)=>{
     const id  = req.params.id;
-    trip.findOne({include:[{model:leftarrive,include:[{model:locations , attributes:["name"]} , {model:location2}]},{model:price},{model:bus}]},{where:{id:id}}).then(info=>{
+    trip.findOne({include:[{model:leftarrive,include:[{model:locations , attributes:["name"]} , {model:location2 ,attributes:["name"]}]},{model:price,attributes:["price"]},{model:bus,attributes:["id"],include:[{model : organization,attributes:["email"]}]}]},{where:{id:id}}).then(info=>{
         res.json(info)
     }).catch(err=>{
         res.json(err)
