@@ -5,16 +5,16 @@ const {check} = require('express-validator')
 const router = express.Router();
 
 router.post('/createcus' ,
-check('email').isEmail().withMessage('الرجاء ادخال ايميل صحيح').not().isEmpty().withMessage('حقل الايميل مطلوب')
-,check('password').isLength({min : 5}).withMessage('ادخل كلمة مرور مؤلفة من 5 محارف على الافل')
+check('email').isEmail().withMessage('please enter email correct').not().isEmpty().withMessage('field email is required')
+,check('password').isLength({min : 5}).withMessage('enter password with 5 characters at least')
 ,custumer.signup);
-router.post('/logincus' ,check('email').isEmail().withMessage('الرجاء ادخال ايميل صحيح').not().isEmpty().withMessage('حقل الايميل مطلوب'),
-check('password').isLength({min : 5}).withMessage('Eادخل كلمة مرور مؤلفة من 5 محارف على الافل')
+router.post('/logincus' ,check('email').isEmail().withMessage('please enter email correct').not().isEmpty().withMessage('حقل الايميل مطلوب'),
+check('password').isLength({min : 5}).withMessage('enter password with 5 characters at least')
 ,custumer.logincus);
 router.post('/verifycodepassword' ,custumer.verifycodepassword);
-router.post('/verifycodecustumer',check('ver').isNumeric().withMessage('الكود يجب ان يكون رقم') ,custumer.verifycodecustumer);
-router.post('/coderesetpassword' ,check('email').isEmail().withMessage('الرجاء ادخال ايميل صحيح').not().isEmpty().withMessage('حقل الايميل مطلوب'),custumer.coderesetpassword);
-router.post('/resetpassword' ,check('password').isLength({min : 5}).withMessage('ادخل كلمة مرور مؤلفة من 5 محارف على الافل'),custumer.resetpassword);
+router.post('/verifycodecustumer',check('ver').isNumeric().withMessage('code must be number') ,custumer.verifycodecustumer);
+router.post('/coderesetpassword' ,check('email').isEmail().withMessage('please enter email correct').not().isEmpty().withMessage('حقل الايميل مطلوب'),custumer.coderesetpassword);
+router.post('/resetpassword' ,check('password').isLength({min : 5}).withMessage('enter password with 5 characters at least'),custumer.resetpassword);
 
 
 
