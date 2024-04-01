@@ -2,12 +2,11 @@
     const config = require('dotenv').config();
     const jwt = require('jsonwebtoken');
     const bcrypt = require('bcryptjs');
-    const con = require('../../../../conn/conn');
     const nodemailer = require('nodemailer');
-    const {generateToken} = require('../../../../util/helper')
+    const {generateToken} = require('../../../util/helper')
 
     //models
-    const custumer = require('../../../../models/custumer');
+    const custumer = require('../../../models/custumer');
 
 
 

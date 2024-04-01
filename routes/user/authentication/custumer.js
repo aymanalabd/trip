@@ -1,4 +1,4 @@
-const custumer = require('../../../controller/user/trip/authentication/custumer');
+const custumer = require('../../../controller/user/authentication/custumer');
 const isauth = require('../../../middleware/isauth')
 
 
