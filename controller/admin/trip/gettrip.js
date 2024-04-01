@@ -105,6 +105,99 @@ const companyId = req.companies.companiesId;
       })
 }
 
+
+exports.gettripisfinished = (req , res)=>{
+  const companyId = req.companies.companiesId;
+  
+  
+      const startingId = req.body.startingid;
+      const destinationId = req.body.destinationid;
+    
+      const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
+      const currentDate = moment().format('YYYY-MM-DD'); 
+      
+      trip
+      .findAll({
+          order: [['tripDate', 'ASC'], ['tripTime', 'ASC']],
+        include: [
+          
+        
+          {
+            model: disk,
+            attributes: ['numberdisk'],
+            where: { status: true },
+          },
+          {
+            model: bus,
+            attributes: ['number'],
+            where:{companyId:companyId},
+            include: [
+              { model: typebus, attributes: ['type'] },
+              { model: companies, attributes: ['name'] },
+            ],
+          },
+          {
+            model: duration,
+            attributes: ['duration'],
+            where: { startingId: startingId, destinationId: destinationId },
+            include: [
+              {
+                model: starting,
+                attributes: ['name'],
+              },
+              {
+                model: destination,
+                attributes: ['name'],
+              },
+            ],
+          },
+        ],
+        where: {
+        [Op.or]: [
+          { tripDate: { [Op.lte]: currentDate } }, // الرحلات بعد التاريخ الحالي
+          {
+            tripDate: currentDate,
+            tripTime: { [Op.lt]: currentTime }, // الرحلات في نفس التاريخ والوقت الحالي وما بعده
+          },
+        ],
+        },
+        attributes: {
+          exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
+        },
+      }).then((trips) => {
+          if(trips.length == 0){
+              return res.error('not found any trips available in current time');
+          }
+          const tripss = trips.map((trip) => {
+           
+            const { duration ,numberdisksisFalse , timetrip , totalTime} = util.calculateTotalTime(trip)
+  
+                 
+                
+                  return {
+                    id: trip.id,
+                    tripDate: trip.tripDate,
+                    tripTime: timetrip,
+                    price: trip.price,
+                    duration: duration,
+                    starting: trip.duration.starting.name,
+                    destination: trip.duration.destination.name,
+                    typebus: trip.bus.typebus.type,
+                    numberbus: trip.bus.number,
+                    company: trip.bus.company.name,
+                    arrivalTime: totalTime,
+                    numberdisksisFalse,
+                  }
+  
+                
+              ;
+        
+          });
+    
+          res.success(tripss, 'These are the required trips');
+        })
+  }
+
 exports.filtertripbynumberbus = (req , res)=>{
     const companyId = req.companies.companiesId;
 

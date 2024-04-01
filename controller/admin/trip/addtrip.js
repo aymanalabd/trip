@@ -114,6 +114,9 @@ exports.updatetrip = (req , res )=>{
     }
   } 
   trip.findByPk(id).then(trip=>{
+    if (!trip) {
+      return res.error('the trip is not found' , 404)
+    }
     trip.update({
       tripDate:tripDate,
       tripTime:tripTime

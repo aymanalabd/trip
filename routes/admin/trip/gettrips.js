@@ -10,6 +10,9 @@ router.get('/getcustumers/:id' , tripcon.getcustumers)
 
 router.post('/gettripisavailable' ,isorg, tripcon.gettripisavailable)
 
+router.post('/gettripisfinished' ,isorg, tripcon.gettripisfinished)
+
+
 router.post('/filtertripbynumberbus' ,isorg, tripcon.filtertripbynumberbus)
 
 
