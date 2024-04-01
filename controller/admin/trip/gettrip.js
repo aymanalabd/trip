@@ -154,10 +154,10 @@ exports.gettripisfinished = (req , res)=>{
         ],
         where: {
         [Op.or]: [
-          { tripDate: { [Op.lte]: currentDate } }, // الرحلات بعد التاريخ الحالي
+          { tripDate: { [Op.lte]: currentDate } }, // الرحلات قبل التاريخ الحالي
           {
             tripDate: currentDate,
-            tripTime: { [Op.lt]: currentTime }, // الرحلات في نفس التاريخ والوقت الحالي وما بعده
+            tripTime: { [Op.lt]: currentTime }, // الرحلات في نفس التاريخ و قبل الوقت الحالي 
           },
         ],
         },
