@@ -8,6 +8,20 @@ const driver = sequelize.define('driver',{
         allowNull:false,
         primaryKey:true,
         autoIncrement:true
+    }, 
+      email:{
+        type:Sequelize.STRING,
+        allowNull:false,
+        
+    },
+    password:{
+        type:Sequelize.STRING,
+        allowNull:false,
+        
+    },
+    confirmpassword:{
+        type:Sequelize.STRING,
+        allowNull:false,
     },
   
     

@@ -15,7 +15,7 @@
 // module.exports = con;
 
 const Sequelize = require('sequelize');
-const sequelize = new Sequelize('transport' , 'root' , '' , {
+const sequelize = new Sequelize('transport company' , 'root' , '' , {
     dialect:'mysql',
     host:'localhost',
     port:'3408'

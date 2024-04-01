@@ -9,6 +9,17 @@ const disk = sequelize.define('disk',{
         primaryKey:true,
         autoIncrement:true
     },
+    numberdisk: Sequelize.INTEGER,
+    status: {
+       type: Sequelize.BOOLEAN,
+       default:true
+    },
+    ispaid: {
+        type: Sequelize.BOOLEAN,
+        default:true
+     }
+    
+
  
 })
 

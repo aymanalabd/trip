@@ -9,32 +9,12 @@ const custumer = sequelize.define('custumer',{
         primaryKey:true,
         autoIncrement:true
     },
-    // firstname:{
-    //     type:Sequelize.STRING,
-    //     allowNull:false,
-        
-    // },
-    // father:{
-    //     type:Sequelize.STRING,
-    //     allowNull:false,
-        
-    // },
-    // mather:{
-    //     type:Sequelize.STRING,
-    //     allowNull:false,
-        
-    // },
+    fullname:{
+        type:Sequelize.STRING,
+        allowNull:false,
+},
 
-    // lastname:{
-    //     type:Sequelize.STRING,
-    //     allowNull:false,
-        
-    // },
-    // localnumber:{
-    //     type:Sequelize.INTEGER,
-    //     allowNull:false,
-        
-    // },
+
     cusemail:{
         type:Sequelize.STRING,
         allowNull:false,
@@ -48,7 +28,13 @@ const custumer = sequelize.define('custumer',{
     confirmpassword:{
         type:Sequelize.STRING,
         allowNull:false,
-    }
+    },
+    fcmToken:{
+        type:Sequelize.STRING,
+    },
+    verificationCode: Sequelize.INTEGER
+    ,
+    activeUser:Sequelize.BOOLEAN
    
     // isadmin:Sequelize.BOOLEAN
 })

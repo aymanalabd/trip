@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../conn/conn');
 
-const location2 = sequelize.define('location2',{
+const starting = sequelize.define('starting',{
     id:{
         type:Sequelize.INTEGER,
         allowNull:false,
@@ -14,4 +14,4 @@ const location2 = sequelize.define('location2',{
     name:Sequelize.STRING,
 })
 
-module.exports = location2;
+module.exports = starting;

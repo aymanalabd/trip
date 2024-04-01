@@ -9,9 +9,17 @@ const bus = sequelize.define('bus',{
         primaryKey:true,
         autoIncrement:true
     },
+    number:{
+        type:Sequelize.INTEGER,
+        allowNull:false,
+    },
+    numofdisk:{
+        type:Sequelize.INTEGER,
+        allowNull:false,
+    },
+   
   
     
-    color:Sequelize.INTEGER,
     icon:Sequelize.STRING,
     
 })

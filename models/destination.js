@@ -2,14 +2,16 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../conn/conn');
 
-const leftarrive = sequelize.define('leftarrive',{
+const destination = sequelize.define('destination',{
     id:{
         type:Sequelize.INTEGER,
         allowNull:false,
         primaryKey:true,
         autoIncrement:true
-    }
+    },
   
+    
+    name:Sequelize.STRING,
 })
 
-module.exports = leftarrive;
+module.exports = destination;

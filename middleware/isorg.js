@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 module.exports = (req , res , next)=>{
-    const token = req.headers.mytoken;
+    const token = req.headers.authorization.split(" ")[1];
     if(!token){
         res.json({msg :'token is required'})
     }
@@ -15,7 +15,8 @@ module.exports = (req , res , next)=>{
         res.json({msg:'token is wrong'})
     }
     // req.email = decode.email;
-    req.isadmin = decode.isadmin;
-    req.orgid = decode.orgid;
+    req.companies = decode;
+    console.log(req.companies)
+
 next()
 }

@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../conn/conn');
 
-const locations = sequelize.define('locations',{
+const rating = sequelize.define('rating',{
     id:{
         type:Sequelize.INTEGER,
         allowNull:false,
@@ -11,7 +11,7 @@ const locations = sequelize.define('locations',{
     },
   
     
-    name:Sequelize.STRING,
+    rating:Sequelize.FLOAT,
 })
 
-module.exports = locations;
+module.exports = rating;

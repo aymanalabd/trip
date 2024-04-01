@@ -1,95 +1,125 @@
+const config = require('dotenv').config();
+const express = require('express');
+const val = require('express-validator')
+const bodyparser = require('body-parser')
+const sequelize = require('./conn/conn');
+
+//handle error
+const response = require('./services/response');
+
 //models
-const organization = require('./models/organization');
+const companies = require('./models/companies');
 const custumer = require('./models/custumer');
+const rating = require('./models/rating');
 const bus = require('./models/bus');
 const disk = require('./models/disk');
-const price = require('./models/price');
+const isBlock = require('./models/isBlock');
 const driver = require('./models/driver');
-const reservation = require('./models/reservation');
-const locations = require('./models/locations');
-const location2 = require('./models/location2');
-
-const leftarrive = require('./models/leftarrive');
-
+const duration = require('./models/duration');
+const starting = require('./models/starting');
+const destination = require('./models/destination');
+const typebus = require('./models/typebus');
+const trip = require('./models/trip');
 
 
 
 
  
-//routers
-const routeorg = require('./routes/organization');
-const routecus = require('./routes/custumer');
-const routetrip = require('./routes/trip')
+//routers require
+const routeorg = require('./routes/admin/authentication/companies');
+const routecus = require('./routes/user/authentication/custumer');
+const routesearchandfilter = require('./routes/user/trip/searchandFilter')
+const routereservation = require('./routes/user/trip/reservation')
+const routetripadmin = require('./routes/admin/trip/addtrip')
+const routegettripadmin = require('./routes/admin/trip/gettrips')
+const routetrating = require('./routes/user/trip/rating')
+const routenot = require('./routes/notification/routenot')
 
 
-const express = require('express');
-const val = require('express-validator')
-const bodyparser = require('body-parser')
 
-const sequelize = require('./conn/conn');
-const trip = require('./models/trip');
-const response = require('./services/response');
+
+
+
+
 const app = express();
 
-
+//handle error
 app.use(response.response);
+
+//json with postman
 app.use(bodyparser.json());
 app.use( bodyparser.urlencoded({extended:false}))
 
+
+//use routes
+app.use(routenot)
+app.use(routetrating)
 app.use(routeorg);
-app.use(routetrip)
+app.use(routesearchandfilter);
+app.use(routereservation);
+app.use(routetripadmin);
+app.use(routegettripadmin);
 app.use(routecus)
 
-app.use((err, req, res, next) => {
-    if (! err) {
-        return next();
-    }
-
-    res.status(500).json(err.message);
-    
-});
 
 
 
+//RELATIONS
+
+//العلاقة بين الباص والرحلة
 bus.hasMany(trip);
 trip.belongsTo(bus);
 
+//العلاقة بين السائق والباص
 driver.hasMany(bus);
 bus.belongsTo(driver);
 
 
-price.hasMany(trip);
-trip.belongsTo(price);
+//العلاقة بين الشركة والباص
+companies.hasMany(bus);
+bus.belongsTo(companies);
+
+//العلاقة بين الرحلة والمحافظة
+duration.hasMany(trip);
+trip.belongsTo(duration);
 
 
+//التقييم 
+trip.hasMany(rating);
+rating.belongsTo(trip);
 
-//العلاقة بين الشركة والرحلة ونوعها وربطهم بجدول شركة،رحلة_نوع
-organization.hasMany(bus);
-bus.belongsTo(organization);
-
-//العلاقة بين الزبون وشركة_رحلة_انطلاق_وجهة وربطهم بجدول الحجز
-trip.belongsToMany(custumer,{through:reservation});
-custumer.belongsToMany(trip,{through:reservation});
-
-reservation.hasMany(disk);
-disk.belongsTo(reservation);
-//العلافة بين الانطلاق والوجهة وربطهم بجدول انطلاق-وجهة
-locations.hasMany(leftarrive);
-leftarrive.belongsTo(locations)
-location2.hasMany(leftarrive);
-leftarrive.belongsTo(location2)
-
-leftarrive.hasMany(trip);
-trip.belongsTo(leftarrive)
+custumer.hasMany(rating);
+rating.belongsTo(custumer)
 
 
+companies.hasMany(isBlock);
+isBlock.belongsTo(companies);
+custumer.hasMany(isBlock);
+isBlock.belongsTo(custumer);
 
 
+//العلاقة بين الباص ونوعه
+typebus.hasMany(bus);
+bus.belongsTo(typebus);
 
 
+trip.hasMany(disk);
+disk.belongsTo(trip);
 
-sequelize.sync(/*{force:true}*/).then(result=>{
-    app.listen(8000)
+
+custumer.hasMany(disk);
+disk.belongsTo(custumer);
+
+
+destination.hasMany(duration);
+duration.belongsTo(destination)
+
+
+starting.hasMany(duration);
+duration.belongsTo(starting)
+
+sequelize.sync().then(result=>{
+    app.listen(process.env.PORT)
 }).catch(err=>{
     console.log(err)
 })

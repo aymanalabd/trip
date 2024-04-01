@@ -1,25 +1,25 @@
-const organization = require('../models/organization')
+const companies = require('../../../models/companies');
 
 const jwt = require('jsonwebtoken')
 exports.login = (req , res , next)=>{
     const email = req.body.email;
     const password = req.body.password;
 
-    organization.findOne({where:{email:email}}).then(result=>{
+    companies.findOne({where:{email:email}}).then(result=>{
        
         if(!result){
-            res.status(422).json('خطا في الايميل او كلمة المرور')
+           return res.error('error in email or password',422)
         }
         
-        if(result.password!==password){
-            res.json('خطا في الايميل او كلمة المرور')
+        if(result.password!=password){
+           return res.error('error in email or password',422)
         }else{
            
-        const token = jwt.sign({email:email,orgid:result.id,islogin: true , password:password} , 'mytoken')
-        res.status(200).json({msg:'successfull', result:result , token : token})
+        const token = jwt.sign({email:email,companiesId:result.id , password:password} , 'mytoken')
+       return res.success({result:result , token : token},'login successfull')
         }
     }).catch(err=>{
-        res.json(err);
+       return res.error(err,422);   
     })
 }
 

@@ -2,13 +2,14 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../conn/conn');
 
-const organization = sequelize.define('organization',{
-    // id:{
-    //     type:Sequelize.INTEGER,
-    //     allowNull:false,
-    //     primaryKey:true,
-    //     autoIncrement:true
-    // },
+const companies = sequelize.define('companies',{
+    id:{
+        type:Sequelize.INTEGER,
+        allowNull:false,
+        primaryKey:true,
+        autoIncrement:true
+    },
+    name:Sequelize.STRING,
     email:{
         type:Sequelize.STRING,
         allowNull:false,
@@ -23,4 +24,4 @@ const organization = sequelize.define('organization',{
     // description:Sequelize.STRING,
 })
 
-module.exports = organization;
+module.exports = companies;

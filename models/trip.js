@@ -10,8 +10,18 @@ const trip = sequelize.define('trip',{
         autoIncrement:true
     },
   
-    triptime:Sequelize.TIME,
-    description:Sequelize.STRING
+    tripDate: {
+        type: Sequelize.DATEONLY,
+        
+      },
+      tripTime: {
+        type: Sequelize.TIME,
+        
+      },
+    price:{
+        type:Sequelize.FLOAT,
+        allowNull:false,
+    }
 })
 
 module.exports = trip;
