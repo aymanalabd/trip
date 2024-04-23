@@ -61,7 +61,6 @@ exports.getcities =(req,res)=>{
   
   //البحث عن رحلات عن طريق التاريخ ومكان الانطلاق والوصول
   exports.search = (req, res) => {
- console.log(req.custumer)
     isBlock.findAll({
       where:{custumerId:req.custumer.id , isBlock:false}
     }).then(custumer=>{
@@ -112,6 +111,9 @@ exports.getcities =(req,res)=>{
         const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
         const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
     
+       
+  if(date == currentDate){
+
         trip
           .findAll({
             order: [[sequelize.literal('DATE_FORMAT(tripTime, "%H:%i")'), 'ASC']],
@@ -148,16 +150,10 @@ exports.getcities =(req,res)=>{
               },
             ],
             where: {
-              tripDate: date, // التاريخ المحدد فقط
-            [Op.or]: [
-              { tripDate: { [Op.gt]: currentDate } }, // الرحلات بعد التاريخ الحالي
-              {
-                tripDate: currentDate,
-                tripTime: { [Op.gte]: currentTime }, // الرحلات في نفس التاريخ والوقت الحالي وما بعده
-              },
-            ],
-            },
-            attributes: {
+                tripDate: date,
+                tripTime: { [Op.gte]: currentTime }, 
+                  },
+            attributes:{
               exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
             },
           })
@@ -191,7 +187,7 @@ exports.getcities =(req,res)=>{
                       company: trip.bus.company.name,
                       arrivalTime: totalTime,
                       rating: ratingValue,
-                     countRating:companyRating.count,
+                      countRating: companyRating ? companyRating.count : 0,
                       numberdisksisFalse,
                     }
     
@@ -205,12 +201,100 @@ exports.getcities =(req,res)=>{
           .catch((error) => {
             res.error(error, 500);
           });
+        }else{
+          trip
+          .findAll({
+            order: [[sequelize.literal('DATE_FORMAT(tripTime, "%H:%i")'), 'ASC']],
+            include: [
+            
+              {
+                model: disk,
+                attributes: ['numberdisk'],
+                where: { status: true },
+              },
+              {
+                model: bus,
+                attributes: ['number'],
+                where:{companyId: {[Op.notIn]: isblock}},
+                include: [
+                  { model: typebus, attributes: ['type'] },
+                  { model: companies, attributes: ['name'] },
+                ],
+              },
+              {
+                model: duration,
+                attributes: ['duration'],
+                where: { startingId: startingId, destinationId: destinationId },
+                include: [
+                  {
+                    model: starting,
+                    attributes: ['name'],
+                  },
+                  {
+                    model: destination,
+                    attributes: ['name'],
+                  },
+                ],
+              },
+            ],
+            where: {
+                tripDate: date,
+                 
+                  },
+            attributes:{
+              exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
+            },
+          })
+          .then((trips) => {
+            if(trips.length == 0){
+              return res.error('not found any trips by informaton which you are entered ' , 404)
+            }
+            const tripss = trips.map((trip) => {
+             
+              const { duration ,numberdisksisFalse , timetrip , totalTime} = util.calculateTotalTime(trip)
+    
+              const companyRating = rate.find(
+                (rating) => rating.companies === trip.bus.company.name
+              );
+    
+              const ratingValue =
+              companyRating && companyRating.count > 0
+                ? companyRating.rating / companyRating.count
+                : 0;       
+                  
+                    return {
+                      id: trip.id,
+                      tripDate: trip.tripDate,
+                      tripTime: timetrip,
+                      price: trip.price,
+                      duration: duration,
+                      starting: trip.duration.starting.name,
+                      destination: trip.duration.destination.name,
+                      typebus: trip.bus.typebus.type,
+                      numberbus: trip.bus.number,
+                      company: trip.bus.company.name,
+                      arrivalTime: totalTime,
+                      rating: ratingValue,
+                      countRating: companyRating ? companyRating.count : 0,
+                      numberdisksisFalse,
+                    }
+    
+                  
+                ;
+          
+            });
+      
+            res.success(tripss, 'These are the required trips');
+          })
+          .catch((error) => {
+            res.error(error, 500);
+          });
+        }
     
         
       })
         .catch((error) => {
           console.error(error);
-          // يمكنك التعامل مع الأخطاء هنا
         });
       
       
@@ -277,6 +361,7 @@ exports.getcities =(req,res)=>{
             const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
             const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
         
+            if(date == currentDate){
             trip
               .findAll({
                 order: [[sequelize.literal('DATE_FORMAT(tripTime, "%H:%i")'), 'ASC']],
@@ -316,13 +401,7 @@ exports.getcities =(req,res)=>{
                 ],
                 where: {
                   tripDate: date, // التاريخ المحدد فقط
-                [Op.or]: [
-                  { tripDate: { [Op.gt]: currentDate } }, // الرحلات بعد التاريخ الحالي
-                  {
-                    tripDate: currentDate,
                     tripTime: { [Op.gte]: currentTime }, // الرحلات في نفس التاريخ والوقت الحالي وما بعده
-                  },
-                ],
                 },
                 attributes: {
                   exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
@@ -358,7 +437,7 @@ exports.getcities =(req,res)=>{
                           company: trip.bus.company.name,
                           arrivalTime: totalTime,
                           rating: ratingValue,
-                         countRating:companyRating.count,
+                          countRating: companyRating ? companyRating.count : 0,
                           numberdisksisFalse,
                         }
         
@@ -372,6 +451,97 @@ exports.getcities =(req,res)=>{
               .catch((error) => {
                 res.error(error, 500);
               });
+            }else{
+              trip
+              .findAll({
+                order: [[sequelize.literal('DATE_FORMAT(tripTime, "%H:%i")'), 'ASC']],
+                include: [
+                
+                  {
+                    model: disk,
+                    attributes: ['numberdisk'],
+                    where: { status: true },
+                  },
+                  {
+                    model: bus,
+                    attributes: ['number'],
+                    where: {
+                      companyId: companyid,
+                    },
+                    include: [
+                      { model: typebus, attributes: ['type'] },
+                      { model: companies, attributes: ['name'] },
+                    ],
+                  },
+                  {
+                    model: duration,
+                    attributes: ['duration'],
+                    where: { startingId: startingId, destinationId: destinationId },
+                    include: [
+                      {
+                        model: starting,
+                        attributes: ['name'],
+                      },
+                      {
+                        model: destination,
+                        attributes: ['name'],
+                      },
+                    ],
+                  },
+                ],
+                where: {
+                  tripDate: date, // التاريخ المحدد فقط
+                },
+                attributes: {
+                  exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
+                },
+              })
+              .then((trips) => {
+                if(trips.length == 0){
+                  return res.error('not found any trip in this company' , 404)
+                }
+                const tripss = trips.map((trip) => {
+                 
+                  const { duration ,numberdisksisFalse , timetrip , totalTime} = util.calculateTotalTime(trip)
+        
+                  const companyRating = rate.find(
+                    (rating) => rating.companies === trip.bus.company.name
+                  );
+        
+                  const ratingValue =
+                  companyRating && companyRating.count > 0
+                    ? companyRating.rating / companyRating.count
+                    : 0;       
+                      
+                        return {
+                          id: trip.id,
+                          tripDate: trip.tripDate,
+                          tripTime: timetrip,
+                          price: trip.price,
+                          duration: duration,
+                          starting: trip.duration.starting.name,
+                          destination: trip.duration.destination.name,
+                          typebus: trip.bus.typebus.type,
+                          numberbus: trip.bus.number,
+                          company: trip.bus.company.name,
+                          arrivalTime: totalTime,
+                          rating: ratingValue,
+                          countRating: companyRating ? companyRating.count : 0,
+                          numberdisksisFalse,
+                        }
+        
+                      
+                    ;
+              
+                });
+               
+                res.success(tripss, 'These are the required trips');
+              })
+              .catch((error) => {
+                res.error(error, 500);
+              });
+
+            }
         
             
           })
@@ -436,6 +606,7 @@ exports.getcities =(req,res)=>{
             const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
             const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
         
+            if(date == currentDate){
             trip
               .findAll({
                 order: [[sequelize.literal('DATE_FORMAT(tripTime, "%H:%i")'), 'ASC']],
@@ -473,13 +644,7 @@ exports.getcities =(req,res)=>{
                 ],
                 where: {
                   tripDate: date, // التاريخ المحدد فقط
-                [Op.or]: [
-                  { tripDate: { [Op.gt]: currentDate } }, // الرحلات بعد التاريخ الحالي
-                  {
-                    tripDate: currentDate,
                     tripTime: { [Op.gte]: currentTime }, // الرحلات في نفس التاريخ والوقت الحالي وما بعده
-                  },
-                ],
                 },
                 attributes: {
                   exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
@@ -522,7 +687,7 @@ exports.getcities =(req,res)=>{
                           company: trip.bus.company.name,
                           arrivalTime: totalTime,
                           rating: ratingValue,
-                         countRating:companyRating.count,
+                          countRating: companyRating ? companyRating.count : 0,
                           numberdisksisFalse,
                         }
         
@@ -536,6 +701,101 @@ exports.getcities =(req,res)=>{
               .catch((error) => {
                 res.error(error, 500);
               });
+            }else{
+              trip
+              .findAll({
+                order: [[sequelize.literal('DATE_FORMAT(tripTime, "%H:%i")'), 'ASC']],
+                include: [
+                
+                  {
+                    model: disk,
+                    attributes: ['numberdisk'],
+                    where: { status: true },
+                  },
+                  {
+                    model: bus,
+                    where:{typebusId:typebusid},
+                    attributes: ['number'],
+                    include: [
+                      { model: typebus, attributes: ['type'] },
+                      { model: companies, attributes: ['id','name'] },
+                    ],
+                  },
+                  {
+                    model: duration,
+                    attributes: ['duration'],
+                    where: { startingId: startingId, destinationId: destinationId },
+                    include: [
+                      {
+                        model: starting,
+                        attributes: ['name'],
+                      },
+                      {
+                        model: destination,
+                        attributes: ['name'],
+                      },
+                    ],
+                  },
+                ],
+                where: {
+                  tripDate: date, // التاريخ المحدد فقط
+                },
+                attributes: {
+                  exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
+                },
+              })
+              .then((trips) => {
+                if(trips.length == 0){
+                  return res.error('not found any trips by informaton which you are entered ' , 404)
+                }
+                const filteredTrips = trips.filter(trip => {
+                  const company = trip.bus.company;
+                  const isBlocked = isblock.includes(company.id);
+                  return !isBlocked;
+                });
+                const tripss = filteredTrips.map((trip) => {
+                  
+                  
+                 
+                  const { duration ,numberdisksisFalse , timetrip , totalTime} = util.calculateTotalTime(trip)
+        
+                  const companyRating = rate.find(
+                    (rating) => rating.companies === trip.bus.company.name
+                  );
+        
+                  const ratingValue =
+                  companyRating && companyRating.count > 0
+                    ? companyRating.rating / companyRating.count
+                    : 0;       
+                      
+                        return {
+                          id: trip.id,
+                          tripDate: trip.tripDate,
+                          tripTime: timetrip,
+                          price: trip.price,
+                          duration: duration,
+                          starting: trip.duration.starting.name,
+                          destination: trip.duration.destination.name,
+                          typebus: trip.bus.typebus.type,
+                          numberbus: trip.bus.number,
+                          company: trip.bus.company.name,
+                          arrivalTime: totalTime,
+                          rating: ratingValue,
+                          countRating: companyRating ? companyRating.count : 0,
+                          numberdisksisFalse,
+                        }
+        
+                      
+                    ;
+              
+                });
+          
+                res.success(tripss, 'These are the required trips');
+              })
+              .catch((error) => {
+                res.error(error, 500);
+              });
+            }
         
             
           })

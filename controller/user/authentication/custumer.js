@@ -72,7 +72,7 @@
             const mailoptions = {
                 from: process.env.USER,
                 to: email,
-                subject: "AlEman company for transport :)",
+                subject: "company of Ayman for transport :)",
                 text: `code is : ${code}`
             }
             transporter.sendMail(mailoptions, (error, info) => {

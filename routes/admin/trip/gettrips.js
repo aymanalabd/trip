@@ -5,15 +5,28 @@ const router = express.Router();
 
 const tripcon = require('../../../controller/admin/trip/gettrip') ;
 
-router.get('/getcustumers/:id' , tripcon.getcustumers)
 
 
 router.post('/gettripisavailable' ,isorg, tripcon.gettripisavailable)
 
+router.get('/gettripsavailable' ,isorg, tripcon.gettripsavailable)
+
+
 router.post('/gettripisfinished' ,isorg, tripcon.gettripisfinished)
+
+router.get('/getalltripfinished' ,isorg, tripcon.getalltripfinished)
+
+
+router.get('/getonetrip/:id' , tripcon.getonetrip)
+
+
+
 
 
 router.post('/filtertripbynumberbus' ,isorg, tripcon.filtertripbynumberbus)
+
+router.post('/filtertripbynumberbusonly' ,isorg, tripcon.filtertripbynumberbusonly)
+
 
 
 module.exports = router;

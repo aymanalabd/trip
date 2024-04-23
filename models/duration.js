@@ -12,6 +12,10 @@ const duration = sequelize.define('duration',{
     duration:{
         type:Sequelize.TIME,
         allowNull:false,
+    },
+    km:{
+        type:Sequelize.INTEGER,
+        allowNull:false
     }
 
 })

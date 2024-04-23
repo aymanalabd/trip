@@ -1,25 +1,31 @@
 const Sequelize = require('sequelize');
 
 const sequelize = require('../conn/conn');
+const custumer = require('./custumer');
 
-const bus = sequelize.define('bus',{
+const customerisnotpaid = sequelize.define('customerisnotpaid',{
     id:{
         type:Sequelize.INTEGER,
         allowNull:false,
         primaryKey:true,
         autoIncrement:true
     },
-    number:{
+    companyId:{
         type:Sequelize.INTEGER,
-        allowNull:false,
     },
-    numofdisk:{
+    numberbus:{
         type:Sequelize.INTEGER,
-        allowNull:false,
+    },
+    custumerId:{
+        type:Sequelize.INTEGER,
+    },
+    tripDate:{
+        type:Sequelize.DATEONLY,
     },
    
   
-        
+    
+    
 })
 
-module.exports = bus;
+module.exports = customerisnotpaid;

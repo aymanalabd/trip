@@ -12,6 +12,10 @@ router.delete('/deletetrip/:id' , tripcon.deletetrip)
 router.put('/updatetrip/:id' , tripcon.updatetrip)
 
 
-router.get('/getbusbyorg' ,isorg, tripcon.getbusbyorg)
+router.post('/getbusbyorg' ,isorg, tripcon.getbusbyorg)
 
+router.post('/getduration' , tripcon.getduration)
+
+
+ 
 module.exports = router;

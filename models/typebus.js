@@ -13,8 +13,12 @@ const typebus = sequelize.define('typebus',{
         type:Sequelize.STRING,
         allowNull:false
     },
-    ratio:{
+    price:{
         type:Sequelize.FLOAT,
+        allowNull:false,
+    },
+    numofdisk:{
+        type:Sequelize.INTEGER,
         allowNull:false,
     },
   

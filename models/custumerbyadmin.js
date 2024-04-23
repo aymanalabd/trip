@@ -2,24 +2,21 @@ const Sequelize = require('sequelize');
 
 const sequelize = require('../conn/conn');
 
-const bus = sequelize.define('bus',{
+const custumerbyadmin = sequelize.define('custumerbyadmin',{
     id:{
         type:Sequelize.INTEGER,
         allowNull:false,
         primaryKey:true,
         autoIncrement:true
     },
-    number:{
-        type:Sequelize.INTEGER,
+    fullname:{
+        type:Sequelize.STRING,
         allowNull:false,
-    },
-    numofdisk:{
-        type:Sequelize.INTEGER,
-        allowNull:false,
-    },
-   
-  
-        
+},
+
+
+    
+ 
 })
 
-module.exports = bus;
+module.exports = custumerbyadmin;

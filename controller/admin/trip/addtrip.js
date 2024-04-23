@@ -14,7 +14,8 @@ const disk = require('../../../models/disk');
 const  sequelize = require('sequelize');
 const duration = require('../../../models/duration');
 const rating = require('../../../models/rating');
-const moment = require('moment')
+const moment = require('moment');
+const { required } = require('joi');
 
 
 
@@ -22,17 +23,23 @@ const moment = require('moment')
 exports.addtrip = (req , res)=>{
     const tripDate  = req.body.tripDate;
     const tripTime  = req.body.tripTime;
-    const price = req.body.price;
     const busid = req.body.busid;
     const starting = req.body.starting;
     const destination = req.body.destination;
+    const moment = require('moment');
+
+const currentTime = moment().format('HH:mm');
+const currentDate = moment().format('YYYY-MM-DD');
+if (tripDate < currentDate || (tripDate === currentDate && tripTime < currentTime)) {
+  return res.error('This date or time is in the past', 402);
+}
 
     bus.findOne({
         where: { id: busid },
         include: [
           {
             model: typebus,
-            attributes: ["ratio"],
+            attributes: ["price"],
           },
         ],
       })
@@ -45,7 +52,7 @@ exports.addtrip = (req , res)=>{
             tripDate: tripDate,
             tripTime: tripTime,
             busId: busid,
-            price: price * bus.typebus.ratio,
+            price: Math.floor((startleft.km * bus.typebus.price)/1000) * 1000 ,
             durationId: startleft.id,
           });
       
@@ -55,6 +62,7 @@ exports.addtrip = (req , res)=>{
               numberdisk: i,
               status: true,
               tripId: newTrip.id,
+              ispaid:false
             });
           }
       
@@ -127,62 +135,60 @@ exports.updatetrip = (req , res )=>{
 }
 
 exports.getbusbyorg = (req, res) => {
+  const tripDate = req.body.tripDate; // التاريخ المدخل
+  const tripTime = req.body.tripTime;
+  const startings = req.body.starting;
+  const destinations = req.body.destination;
 
-    const tripDate = req.body.tripDate; // التاريخ المدخل 
-    const triptime = req.body.tripTime;
-    const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
-    const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
- 
+  console.log(startings)
+  const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
+  const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
 
-  //اذا كان التاريخ المدخل اصغر من تاريخ الوقت الحالي ارجع رسالة خطا
-    if (tripDate < currentDate) {
-      return res.error(' this date is old' ,  402);
-    }else{
-      if(tripDate == currentDate && triptime < currentTime){
-        return res.error(' this time is old' ,  402);
+  // إذا كان التاريخ المدخل أصغر من التاريخ الحالي أو إذا كان التاريخ المدخل يساوي التاريخ الحالي والوقت المدخل أصغر من الوقت الحالي
+  if (tripDate < currentDate || (tripDate === currentDate && tripTime < currentTime)) {
+    return res.error('This date or time is in the past', 402);
+  }
 
+  bus.findAll({
+    include: [
+      {
+        model: typebus,
+        attributes: ["type"]
+      },
+      {
+        model: trip,
+        required: false,
+        include: [
+          {
+            model: duration,
+            attributes: ["duration"],
+            include: [
+              {
+                model: starting,
+                attributes: ["name"]
+              },
+              {
+                model: destination,
+                attributes: ["name"]
+              }
+            ]
+          }
+        ]
       }
-    } 
-    
-  
-  bus
-    .findAll({
-      
-      include:[
-        {
-          model:typebus , attributes:["type"]
-        },
-            {
-              model:trip,
-              include:[
-                {
-                  model:duration,attributes:["duration"],
-                  include:[
-                    {
-                      model:starting , attributes:["name"]
-                    },
-                    {
-                      model:destination , attributes:["name"]
-                    }
-                  ]
-                }
-              ],where:{ tripDate:tripDate}
-            }
-          ],
-          where:{companyId:req.companies.companiesId}
-    })
+    ],
+    where: { companyId: req.companies.companiesId },
+    order: [[{ model: trip, as: 'trips' }, 'updatedAt', 'DESC']],
+  })
     .then((buses) => {
-      let isBusAvailable = false;
       const availableBuses = buses.filter(bus => {
-        
-        
-        for (const trip of bus.trips) {
+        const startHourss = parseInt(tripTime.split(':')[0]);
+        const startMinutess = parseInt(tripTime.split(':')[1]);
+        const totalTimes = `${startHourss.toString().padStart(2, '0')}:${startMinutess.toString().padStart(2, '0')}`;
 
-          const startTime = trip.tripTime;
-          const endTime = trip.duration.duration;
-       
-
-
+        if (bus.trips.length > 0) {
+          const lastTrip = bus.trips[0];
+          const startTime = bus.trips[0].tripTime;
+          const endTime = bus.trips[0].duration.duration;
           const startHours = parseInt(startTime.split(':')[0]);
           const startMinutes = parseInt(startTime.split(':')[1]);
           const durationHours = parseInt(endTime.split(':')[0]);
@@ -191,33 +197,62 @@ exports.getbusbyorg = (req, res) => {
           const totalHours = startHours + durationHours + Math.floor(totalMinutes / 60);
           const minutes = totalMinutes % 60;
           const totalTime = `${totalHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-
-          const startHourss = parseInt(triptime.split(':')[0]);
-          const startMinutess = parseInt(triptime.split(':')[1]);
-          const totalTimes = `${startHourss.toString().padStart(2, '0')}:${startMinutess.toString().padStart(2, '0')}`;
-          if (totalTimes <= totalTime) {
-            return false // الباص متاح
+          console.log(totalTime)
+          if (lastTrip.tripDate === tripDate && totalTimes <= totalTime || lastTrip.duration.destination.name != startings) {
+            return false;
           }
-          isBusAvailable = true;
         }
-        return true; // الباص غير متاح
+
+        return true;
       });
- 
-const busNumbers = availableBuses.map((bus) => ({
-          id:bus.id,
+
+      const busNumbers = availableBuses.map((bus) => {
+        const destination = bus.trips.length > 0 ? bus.trips[0].duration.destination.name : '';
+        return {
+          id: bus.id,
           number: bus.number,
           type: bus.typebus.type,
-          destination:bus.trips[0].duration.destination.name
-        }));
-if (isBusAvailable) {
-        // تنفيذ الإجراءات إذا كان الباص متاحًا
-        res.success(busNumbers);
-      } else {
-        // إجراءات إذا كان الباص غير متاح
-        res.success({});
-      }
-     })
+          destination: destination
+        }
+      });
+
+      res.success(busNumbers);
+    })
     .catch((err) => {
-      res.error(err, 500);
+      res.error(err.message, 500);
     });
 };
+
+
+
+exports.getduration = (req , res )=>{
+  const startings = req.body.starting;
+  const destinations = req.body.destination;
+  duration.findOne({
+    
+    include:[
+      {
+        model:starting , attributes:["name"],
+        where:{name:startings}
+      },
+      {
+        model:destination , attributes:["name"],
+        where:{name:destinations}
+      }
+    ]
+  }).then(duration=>{
+  
+    if(duration){
+      const durationHours = parseInt(duration.duration.split(':')[0]);
+      const durationMinutes = parseInt(duration.duration.split(':')[1]);
+      const durations = `${durationHours.toString().padStart(2, '0')}:${durationMinutes.toString().padStart(2, '0')}`;
+  
+   return res.success(durations)
+    }else{
+      return res.error('not found trips for information which you are entered ' , 404)
+    }
+  }).catch(err=>{
+    return res.error(err , 500);
+  })
+
+}
