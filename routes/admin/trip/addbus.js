@@ -7,6 +7,9 @@ const buscon = require('../../../controller/admin/trip/addbus') ;
 
 router.post('/addbus' ,isorg, buscon.addbus);
 
+router.put('/updatebus/:id' , buscon.updatebus);
+
+
 router.get('/getbuses' ,isorg, buscon.getbuses);
 
 router.get('/gettypebus' , buscon.getbuses);

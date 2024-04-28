@@ -8,6 +8,9 @@ const getcustumerscon = require('../../../controller/admin/customers/getcustumer
 
 router.get('/getcustumers/:id' , getcustumerscon.getcustumers);
 
+router.get('/getcustumersisblock' ,isorg, getcustumerscon.getcustumersisblock);
+
+
 router.post('/getcustumersbynumberdisk/:id' , getcustumerscon.getcustumersbynumberdisk);
 
 router.get('/getcustumersipaid/:id', getcustumerscon.getcustumersispaid);

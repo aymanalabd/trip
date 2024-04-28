@@ -14,6 +14,9 @@ const disk = require('../../../models/disk');
 const  sequelize = require('sequelize');
 const duration = require('../../../models/duration');
 const rating = require('../../../models/rating');
+
+
+const axios = require('axios')
 const moment = require('moment');
 const { required } = require('joi');
 
@@ -139,11 +142,13 @@ exports.getbusbyorg = (req, res) => {
   const tripTime = req.body.tripTime;
   const startings = req.body.starting;
   const destinations = req.body.destination;
+  axios.get('http://worldtimeapi.org/api/ip')
+  .then(response => {
+    const currentDateTime = response.data.datetime;
+    const currentDate = currentDateTime.slice(0, 10);
 
-  console.log(startings)
-  const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
-  const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
-
+    const currentTime = moment().format('HH:mm');
+ 
   // إذا كان التاريخ المدخل أصغر من التاريخ الحالي أو إذا كان التاريخ المدخل يساوي التاريخ الحالي والوقت المدخل أصغر من الوقت الحالي
   if (tripDate < currentDate || (tripDate === currentDate && tripTime < currentTime)) {
     return res.error('This date or time is in the past', 402);
@@ -184,7 +189,7 @@ exports.getbusbyorg = (req, res) => {
         const startHourss = parseInt(tripTime.split(':')[0]);
         const startMinutess = parseInt(tripTime.split(':')[1]);
         const totalTimes = `${startHourss.toString().padStart(2, '0')}:${startMinutess.toString().padStart(2, '0')}`;
-
+        
         if (bus.trips.length > 0) {
           const lastTrip = bus.trips[0];
           const startTime = bus.trips[0].tripTime;
@@ -197,17 +202,21 @@ exports.getbusbyorg = (req, res) => {
           const totalHours = startHours + durationHours + Math.floor(totalMinutes / 60);
           const minutes = totalMinutes % 60;
           const totalTime = `${totalHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-          console.log(totalTime)
-          if (lastTrip.tripDate === tripDate && totalTimes <= totalTime || lastTrip.duration.destination.name != startings) {
+          if (lastTrip.tripDate === tripDate && totalTimes <= totalTime || lastTrip.duration.destination.name != startings ) {
             return false;
           }
+        }else{
+          if(bus.place != startings){
+            return false
+          }
         }
-
         return true;
       });
 
       const busNumbers = availableBuses.map((bus) => {
-        const destination = bus.trips.length > 0 ? bus.trips[0].duration.destination.name : '';
+        console.log(bus.id)
+        const destination = bus.trips.length > 0 ? bus.trips[0].duration.destination.name : bus.place;
+       
         return {
           id: bus.id,
           number: bus.number,
@@ -216,8 +225,9 @@ exports.getbusbyorg = (req, res) => {
         }
       });
 
-      res.success(busNumbers);
+     return res.success(busNumbers);
     })
+  })
     .catch((err) => {
       res.error(err.message, 500);
     });

@@ -10,6 +10,8 @@ const tripcon = require('../../../controller/admin/trip/gettrip') ;
 router.post('/gettripisavailable' ,isorg, tripcon.gettripisavailable)
 
 router.get('/gettripsavailable' ,isorg, tripcon.gettripsavailable)
+router.get('/gettripscurrent' ,isorg, tripcon.gettripscurrent)
+
 
 
 router.post('/gettripisfinished' ,isorg, tripcon.gettripisfinished)

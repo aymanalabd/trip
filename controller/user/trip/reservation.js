@@ -32,7 +32,6 @@ exports.reservation = (req, res, next) => {
           const customerId = req.custumer.id;
           return disk.count({ where: { tripId: trip.id, custumerId: customerId } })
             .then(count => {
-              // تحقق من عدد المقاعد المحجوزة للزبون
               const totalReservedSeats = count + seats.length;
               if (totalReservedSeats > 6) {
                 return res.error('You cannot reserve more than 6 seats in the same trip.', 402);
@@ -47,7 +46,7 @@ exports.reservation = (req, res, next) => {
                   return res.success({}, 'Reservation completed successfully.');
                 })
                 .catch(err => {
-                  return res.error(err);
+                  return res.error(err.message , 500);
                 });
             });
         });

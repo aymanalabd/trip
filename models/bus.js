@@ -17,6 +17,9 @@ const bus = sequelize.define('bus',{
         type:Sequelize.INTEGER,
         allowNull:false,
     },
+    place:{
+        type:Sequelize.STRING,
+    }
    
   
         

@@ -24,8 +24,8 @@ const driver = sequelize.define('driver',{
         allowNull:false,
     },
   
-    
-    name:Sequelize.STRING
+    phone:Sequelize.STRING,
+    fullname:Sequelize.STRING
 })
 
 module.exports = driver;

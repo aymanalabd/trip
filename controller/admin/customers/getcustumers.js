@@ -2,10 +2,8 @@ const companies = require('../../../models/companies');
 const moment = require('moment')
 const util = require('../../../util/helper');
 const { Op } = require('sequelize');  
-const bus = require('../../../models/bus');
-const typebus = require('../../../models/typebus');
-const starting = require('../../../models/starting');
-const destination = require('../../../models/destination');
+const isBlock = require('../../../models/isBlock');
+
 const trip = require('../../../models/trip'); 
 const disk = require('../../../models/disk'); 
 const  sequelize = require('sequelize');
@@ -130,51 +128,90 @@ exports.addc = (req, res )=>{
      
   };
 
+  exports.getcustumersisblock = (req, res) => {
+    const companiesId = req.companies.companiesId;
+  
+    isBlock
+      .findAll({ where: { companyId: companiesId, isblock: false } })
+      .then((custumers) => {
+        const promises = custumers.map((customer) => {
+          return custumer.findOne({ where: { id: customer.custumerId } })
+            .then((c) => {
+              return {
+                id: c.id,
+                fullName: c.fullname,
+              };
+            });
+        });
+  
+        Promise.all(promises)
+          .then((customersisblock) => {
+            return res.success(customersisblock, 'These are all blocked customers');
+          })
+          .catch((err) => {
+            return res.error(err.message,500);
+          });
+      })
+      .catch((err) => {
+        return res.error(err.message);
+      });
+  };
+
  
-    exports.getcustumersisnotpaid = async (req, res) => {
-      const companiesId = req.companies.companiesId;
-
-      try {
-        const cusNotPaid = await customerisnotpaid.findAll({ where: { companyId: companiesId } });
-    
-        if (cusNotPaid.length === 0) {
-          return res.error('No customers found who have not paid in this company', 404);
-        }
-    
-        const uniqueRecordIds = new Set();
-        const customerData = [];
-    
-        for (const cus of cusNotPaid) {
-          const customerId = cus.custumerId;
-          const recordId = cus.id;
-
-    
-          if (!uniqueRecordIds.has(recordId)) {
-            uniqueRecordIds.add(recordId);
-    
-            const customer = await custumer.findOne({ where: { id: customerId } });
-    
-            if (customer) {
-              const tripDate = cus.tripDate;
-              const numberbus = cus.numberbus;
-    
-              customerData.push({
-                id: customer.id,
-                fullname: customer.fullname,
-                tripDate: tripDate,
-                numberbus: numberbus,
-              });
-            }
+  exports.getcustumersisnotpaid = async (req, res) => {
+    const companiesId = req.companies.companiesId;
+  
+    try {
+      const customersNotPaid = await customerisnotpaid.findAll({
+        where: { companyId: companiesId },
+      });
+  
+      if (customersNotPaid.length === 0) {
+        return res.error('No customers found who have not paid in this company', 404);
+      }
+  
+      const customerData = [];
+  
+      for (const customerNotPaid of customersNotPaid) {
+        const customerId = customerNotPaid.custumerId;
+        let customerIndex = null;
+  
+        for (let i = 0; i < customerData.length; i++) {
+          if (customerData[i].id === customerId) {
+            customerIndex = i;
+            break;
           }
         }
-    
-        return res.success(customerData);
-      } catch (error) {
-        return res.error(error.message, 500);
+  
+        if (customerIndex === null) {
+          const customer = await custumer.findOne({ where: { id: customerId } });
+  
+          if (customer) {
+            customerData.push({
+              id: customer.id,
+              fullname: customer.fullname,
+              trips: [],
+            });
+            customerIndex = customerData.length - 1;
+          }
+        }
+  
+        const tripDate = customerNotPaid.tripDate;
+        const numberbus = customerNotPaid.numberbus;
+  
+        if (customerIndex !== null) {
+          customerData[customerIndex].trips.push({
+            tripDate,
+            numberbus,
+          });
+        }
       }
-
-      
-};
+  
+      return res.success(customerData, 'These are all customers who have not paid');
+    } catch (error) {
+      return res.error(error.message, 500);
+    }
+  };
 
 exports.getcustumersispaid = async (req, res) => {
   try {

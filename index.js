@@ -47,6 +47,8 @@ const routetrating = require('./routes/user/trip/rating')
 const routenot = require('./routes/notification/routenot')
 const routegetcus = require('./routes/admin/customers/getcustumers')
 const routeblock = require('./routes/admin/customers/block')
+const routedriver = require('./routes/admin/drivers/adddriver')
+
 
 const routeaddbus = require('./routes/admin/trip/addbus')
 
@@ -69,6 +71,7 @@ app.use( bodyparser.urlencoded({extended:false}))
 
 //use routes
 app.use(routenot)
+app.use(routedriver)
 app.use(routetrating)
 app.use(routeorg);
 app.use(routesearchandfilter);
@@ -82,10 +85,7 @@ app.use(routeblock)
 app.use(routereserveauto)
 
 
-app.use((req, res, next) => {
-    console.log(req)
-    next();
-  });
+
 
 
 const cron = require('node-cron');
@@ -257,6 +257,11 @@ disk.belongsTo(trip);
 custumer.hasMany(disk);
 disk.belongsTo(custumer);
 
+companies.hasMany(driver);
+driver.belongsTo(companies);
+
+driver.hasMany(bus);
+bus.belongsTo(driver)
 
 destination.hasMany(duration);
 duration.belongsTo(destination)
