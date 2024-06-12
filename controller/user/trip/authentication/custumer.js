@@ -2,11 +2,12 @@
     const config = require('dotenv').config();
     const jwt = require('jsonwebtoken');
     const bcrypt = require('bcryptjs');
+    const con = require('../../../../conn/conn');
     const nodemailer = require('nodemailer');
-    const {generateToken} = require('../../../util/helper')
+    const {generateToken} = require('../../../../util/helper')
 
     //models
-    const custumer = require('../../../models/custumer');
+    const custumer = require('../../../../models/custumer');
 
 
 
@@ -36,7 +37,7 @@
                 if (!ok) {
                     return res.error("error in email or password", 404)
                 }
-                const {token , refreshtoken} = generateToken({id:result.id, fcmToken:result.fcmToken })
+                const {token , refreshtoken} = generateToken({id:result.id })
 
                 return res.success({ result: result, token: token , refreshtoken:refreshtoken }, "successfull")
             }).catch(err => {
@@ -59,8 +60,7 @@
 
     //signup custumer
     exports.signup = (req, res, next) => {
-        const { fullname , email, password, confirmpassword ,fcmToken} = req.body;
-
+        const { fullname , email, password, confirmpassword } = req.body;
         
     custumer.findOne({ where: { cusemail: email } }).then(user => {
         
@@ -73,7 +73,7 @@
             const mailoptions = {
                 from: process.env.USER,
                 to: email,
-                subject: "company of Ayman for transport :)",
+                subject: "AlEman company for transport :)",
                 text: `code is : ${code}`
             }
             transporter.sendMail(mailoptions, (error, info) => {
@@ -86,7 +86,7 @@
             bcrypt.hash(password, 10).then((hash) => {
             bcrypt.hash(confirmpassword, 10).then(confirmpasswordhash => {
             custumer.create({fullname:fullname,cusemail:email , password:hash ,
-                    confirmpassword:confirmpasswordhash , verificationCode:code , activeUser:false, fcmToken:fcmToken}).then(user=>{
+                    confirmpassword:confirmpasswordhash , verificationCode:code , activeUser:false}).then(user=>{
                     return res.success({ userinfo: user } , 'this is info user');
 
                     })
@@ -122,7 +122,7 @@
         
         user.update({verificationCode:null , activeUser:true} , {where:{id:user.id}})
 
-        const {token , refreshtoken} = generateToken({ id: user.id, fcmToken:user.fcmToken })
+        const {token , refreshtoken} = generateToken({ id: user.id })
        return res.success({user , token:token , refreshtoken : refreshtoken },'create user successfull')
         
         

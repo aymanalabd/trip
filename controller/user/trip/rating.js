@@ -2,7 +2,6 @@
 //models
  
 const rating = require('../../../models/rating'); 
-const isBlock = require('../../../models/isBlock'); 
 
 
 
@@ -14,7 +13,6 @@ exports.rating = (req, res, next) => {
   const customerId = req.custumer.id;
   const tripId = req.params.id;
   const ratingValue = req.body.rating;
-  console.log(customerId)
 
   rating.findOne({
     where: {
@@ -42,9 +40,7 @@ exports.rating = (req, res, next) => {
       next(error);
     });
 };
-exports.getblock = (req , res , next)=>{
- 
-}
+
 
 
 

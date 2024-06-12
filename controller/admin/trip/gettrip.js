@@ -1,6 +1,5 @@
 const companies = require('../../../models/companies');
-const moment = require('moment')
-const momenttimezone = require('moment-timezone')
+
   const axios = require('axios');
 
 const util = require('../../../util/helper');
@@ -11,25 +10,29 @@ const starting = require('../../../models/starting');
 const destination = require('../../../models/destination');
 const trip = require('../../../models/trip'); 
 const disk = require('../../../models/disk'); 
-const  sequelize = require('sequelize');
 const duration = require('../../../models/duration');
-const custumer = require('../../../models/custumer');
 const rating = require('../../../models/rating');
+const driver = require('../../../models/driver');
 
 
 
 
+const moment = require('moment-timezone');
+const { date } = require('joi');
 
 
 exports.getalltripfinished = (req, res) => {
   const companyId = req.companies.companiesId;
 
-  axios.get('http://worldtimeapi.org/api/ip')
-    .then(response => {
-      const currentDateTime = response.data.datetime;
-      const currentDate = currentDateTime.slice(0, 10); // Extracting the date from the returned string
 
-      const currentTime = moment(currentDateTime).format('HH:mm');
+  const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+    const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
+
+  
+
+console.log("currentDate: "+ currentDate)
+console.log("currentTime: "+ currentTime)  
+
 
       trip.findAll({
         order: [['tripDate', 'DESC'], ['tripTime', 'ASC']],
@@ -117,10 +120,7 @@ exports.getalltripfinished = (req, res) => {
 
         res.success(tripss, 'These are the required trips');
       });
-    })
-    .catch(error => {
-      console.error('An error occurred while retrieving the date:', error);
-    });
+   
 };
 
 exports.gettripisfinished = (req, res) => {
@@ -129,11 +129,11 @@ exports.gettripisfinished = (req, res) => {
   const startingId = req.body.startingid;
   const destinationId = req.body.destinationid;
 
-  axios.get('http://worldtimeapi.org/api/ip')
-    .then(response => {
-      const currentDateTime = response.data.datetime;
-      const currentDate = currentDateTime.slice(0, 10);
-      const currentTime = moment(currentDateTime).format('HH:mm');
+  const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+  const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
+
+  console.log(currentDate)
+  console.log(currentTime);
 
       trip.findAll({
         order: [['tripDate', 'DESC'], ['tripTime', 'ASC']],
@@ -216,17 +216,15 @@ exports.gettripisfinished = (req, res) => {
 
         res.success(tripss, 'These are the finished trips');
       });
-    });
+    
 };
 
   exports.gettripisavailable = (req, res) => {
     const companyId = req.companies.companiesId;
   
-    axios.get('http://worldtimeapi.org/api/ip')
-      .then(response => {
-        const currentDateTime = response.data.datetime;
-        const currentDate = currentDateTime.slice(0, 10);
-        const currentTime = moment(currentDateTime).format('HH:mm');
+    const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+    const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
+
         const startingId = req.body.startingid;
         const destinationId = req.body.destinationid;
   
@@ -335,16 +333,14 @@ exports.gettripisfinished = (req, res) => {
   
           res.success(filteredTrips, 'These are the required trips');
         });
-      });
+      
   };
 
     exports.filtertripbynumberbus = (req, res) => {
       const companyId = req.companies.companiesId;
-      axios.get('http://worldtimeapi.org/api/ip')
-        .then(response => {
-          const currentDateTime = response.data.datetime;
-          const currentDate = currentDateTime.slice(0, 10);
-          const currentTime = moment(currentDateTime).format('HH:mm');
+      const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+      const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
+
     
           const startingId = req.body.startingid;
           const destinationId = req.body.destinationid;
@@ -456,18 +452,16 @@ exports.gettripisfinished = (req, res) => {
     
             res.success(filteredTrips, 'These are the required trips');
           });
-        });
+        
     };
 
 
 
 exports.filtertripbynumberbusonly = (req, res) => {
   const companyId = req.companies.companiesId;
-  axios.get('http://worldtimeapi.org/api/ip')
-    .then(response => {
-      const currentDateTime = response.data.datetime;
-      const currentDate = currentDateTime.slice(0, 10);
-      const currentTime = moment(currentDateTime).format('HH:mm');
+  const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+  const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
+
 
       const numberbus = req.body.numberbus;
 
@@ -583,19 +577,16 @@ exports.filtertripbynumberbusonly = (req, res) => {
 
         res.success(filteredTrips, 'These are the required trips');
       })
-    })
+  
 }
 
 
 exports.gettripscurrent = (req, res) => {
   const companyId = req.companies.companiesId;
 
-  axios.get('http://worldtimeapi.org/api/ip')
-    .then(response => {
-      const currentDateTime = response.data.datetime;
-      const currentDate = currentDateTime.slice(0, 10);
+  const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+    const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
 
-      const currentTime = moment(currentDateTime).format('HH:mm');
           trip.findAll({
         order: [['tripDate', 'ASC'], ['tripTime', 'ASC']],
         include: [
@@ -612,6 +603,8 @@ exports.gettripscurrent = (req, res) => {
             include: [
               { model: typebus, attributes: ['type'] },
               { model: companies, attributes: ['name'] },
+              { model: driver, attributes: ['id'] },
+
             ],
           },
           {
@@ -630,22 +623,18 @@ exports.gettripscurrent = (req, res) => {
           },
         ],
         where: {
-          [Op.or]: [
-            {
-              tripDate: currentDate,
-              tripTime: { [Op.gte]: currentTime }, // الرحلات في نفس التاريخ والوقت الحالي وما بعده
-            }
-            , {
+           
+             
               tripDate: currentDate,
               tripTime: { [Op.lte]: currentTime },
-            }
-          ],
+            
+          
         },
         attributes: {
           exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
         },
       }).then((trips) => {
-        if (trips.length === 0) {
+        if (trips.length == 0) {
           return res.error('Not found any trips available at the current time', 404);
         }
         
@@ -656,7 +645,7 @@ exports.gettripscurrent = (req, res) => {
             return {
               id: trip.id,
               isAvailable: "Now",
-              tripDate: trip.tripDate,
+              tripDate: trip.tripDate,  
               tripTime: timetrip,
               price: trip.price,
               duration: duration,
@@ -665,6 +654,7 @@ exports.gettripscurrent = (req, res) => {
               typebus: trip.bus.typebus.type,
               numberbus: trip.bus.number,
               company: trip.bus.company.name,
+              driverId:trip.bus.driver.id,
               arrivalTime: totalTime,
               numberdisksisFalse,
             };
@@ -672,143 +662,139 @@ exports.gettripscurrent = (req, res) => {
         });
 
         const filteredTrips = tripss.filter((trip) => trip !== undefined); // استبعاد القيم الـ null
-
+       
+        if(filteredTrips.length == 0){
+          return res.error('Not found any trips available at the current time', 404);
+        }
         res.success(filteredTrips, 'These are the required trips');
       });
-    })
-    .catch(error => {
-      res.error('An error occurred while retrieving the date:', error);
-    });
+    
+   
 };
+
 
 
 exports.gettripsavailable = (req, res) => {
   const companyId = req.companies.companiesId;
 
-  axios.get('http://worldtimeapi.org/api/ip')
-    .then(response => {
-      const currentDateTime = response.data.datetime;
-      const currentDate = currentDateTime.slice(0, 10);
+  const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+    const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
 
-      const currentTime = moment(currentDateTime).format('HH:mm');
-          trip.findAll({
-        order: [['tripDate', 'ASC'], ['tripTime', 'ASC']],
+  trip.findAll({
+    order: [['tripDate', 'ASC'], ['tripTime', 'ASC']],
+    include: [
+      {
+        model: disk,
+        attributes: ['numberdisk'],
+        where: { status: true },
+        required: false
+      },
+      {
+        model: bus,
+        attributes: ['number'],
+        where: { companyId: companyId },
+        include: [
+          { model: typebus, attributes: ['type'] },
+          { model: companies, attributes: ['name'] },
+        ],
+      },
+      {
+        model: duration,
+        attributes: ['duration'],
         include: [
           {
-            model: disk,
-            attributes: ['numberdisk'],
-            where: { status: true },
-            required: false
+            model: starting,
+            attributes: ['name'],
           },
           {
-            model: bus,
-            attributes: ['number'],
-            where: { companyId: companyId },
-            include: [
-              { model: typebus, attributes: ['type'] },
-              { model: companies, attributes: ['name'] },
-            ],
-          },
-          {
-            model: duration,
-            attributes: ['duration'],
-            include: [
-              {
-                model: starting,
-                attributes: ['name'],
-              },
-              {
-                model: destination,
-                attributes: ['name'],
-              },
-            ],
+            model: destination,
+            attributes: ['name'],
           },
         ],
-        where: {
-          [Op.or]: [
-            { tripDate: { [Op.gt]: currentDate } }, // الرحلات بعد التاريخ الحالي
-            {
-              tripDate: currentDate,
-              tripTime: { [Op.gte]: currentTime }, // الرحلات في نفس التاريخ والوقت الحالي وما بعده
-            }
-            , {
-              tripDate: currentDate,
-              tripTime: { [Op.lte]: currentTime },
-            }
-          ],
+      },
+    ],
+    where: {
+      [Op.or]: [
+        { tripDate: { [Op.gt]: currentDate } }, // الرحلات بعد التاريخ الحالي
+        {
+          tripDate: currentDate,
+          tripTime: { [Op.gte]: currentTime }, // الرحلات في نفس التاريخ والوقت الحالي وما بعده
         },
-        attributes: {
-          exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
+        {
+          tripDate: currentDate,
+          tripTime: { [Op.lte]: currentTime },
         },
-      }).then((trips) => {
-        if (trips.length === 0) {
-          return res.error('Not found any trips available at the current time', 404);
-        }
-        
-        const tripss = trips.map((trip) => {
-          const { duration, numberdisksisFalse, timetrip, totalTime } = util.calculateTotalTime(trip);
+      ],
+    },
+    attributes: {
+      exclude: ['updatedAt', 'createdAt', 'busId', 'startingId', 'destinationId'],
+    },
+  }).then((trips) => {
+    if (trips.length === 0) {
+      return res.error('Not found any trips available at the current time', 404);
+    }
 
-          if (trip.tripDate === currentDate && trip.tripTime <= currentTime && totalTime >= currentTime) {
-            return {
-              id: trip.id,
-              isAvailable: "Now",
-              tripDate: trip.tripDate,
-              tripTime: timetrip,
-              price: trip.price,
-              duration: duration,
-              starting: trip.duration.starting.name,
-              destination: trip.duration.destination.name,
-              typebus: trip.bus.typebus.type,
-              numberbus: trip.bus.number,
-              company: trip.bus.company.name,
-              arrivalTime: totalTime,
-              numberdisksisFalse,
-            };
-          } else if (trip.tripDate === currentDate && trip.tripTime >= currentTime) {
-            return {
-              id: trip.id,
-              isAvailable: "Today",
-              tripDate: trip.tripDate,
-              tripTime: timetrip,
-              price: trip.price,
-              duration: duration,
-              starting: trip.duration.starting.name,
-              destination: trip.duration.destination.name,
-              typebus: trip.bus.typebus.type,
-              numberbus: trip.bus.number,
-              company: trip.bus.company.name,
-              arrivalTime: totalTime,
-              numberdisksisFalse,
-            };
-          } else if (trip.tripDate > currentDate) {
-            return {
-              id: trip.id,
-              isAvailable: "Later",
-              tripDate: trip.tripDate,
-              tripTime: timetrip,
-              price: trip.price,
-              duration: duration,
-              starting: trip.duration.starting.name,
-              destination: trip.duration.destination.name,
-              typebus: trip.bus.typebus.type,
-              numberbus: trip.bus.number,
-              company: trip.bus.company.name,
-              arrivalTime: totalTime,
-              numberdisksisFalse,
-            };
-          }
-        });
+    const tripss = trips.map((trip) => {
+      const { duration, numberdisksisFalse, timetrip, totalTime } = util.calculateTotalTime(trip);
 
-        const filteredTrips = tripss.filter((trip) => trip !== undefined); // استبعاد القيم الـ null
-
-        res.success(filteredTrips, 'These are the required trips');
-      });
-    })
-    .catch(error => {
-      res.error('An error occurred while retrieving the date:', error);
+      if (trip.tripDate === currentDate && trip.tripTime <= currentTime && totalTime >= currentTime) {
+        return {
+          id: trip.id,
+          isAvailable: "Now",
+          tripDate: trip.tripDate,
+          tripTime: timetrip,
+          price: trip.price,
+          duration: duration,
+          starting: trip.duration.starting.name,
+          destination: trip.duration.destination.name,
+          typebus: trip.bus.typebus.type,
+          numberbus: trip.bus.number,
+          company: trip.bus.company.name,
+          arrivalTime: totalTime,
+          numberdisksisFalse,
+        };
+      } else if (trip.tripDate === currentDate && trip.tripTime >= currentTime) {
+        return {
+          id: trip.id,
+          isAvailable: "Today",
+          tripDate: trip.tripDate,
+          tripTime: timetrip,
+          price: trip.price,
+          duration: duration,
+          starting: trip.duration.starting.name,
+          destination: trip.duration.destination.name,
+          typebus: trip.bus.typebus.type,
+          numberbus: trip.bus.number,
+          company: trip.bus.company.name,
+          arrivalTime: totalTime,
+          numberdisksisFalse,
+        };
+      } else if (trip.tripDate > currentDate) {
+        return {
+          id: trip.id,
+          isAvailable: "Later",
+          tripDate: trip.tripDate,
+          tripTime: timetrip,
+          price: trip.price,
+          duration: duration,
+          starting: trip.duration.starting.name,
+          destination: trip.duration.destination.name,
+          typebus: trip.bus.typebus.type,
+          numberbus: trip.bus.number,
+          company: trip.bus.company.name,
+          arrivalTime: totalTime,
+          numberdisksisFalse,
+        };
+      }
     });
-};
 
+    const filteredTrips = tripss.filter((trip) => trip !== undefined); // استبعاد القيم الـ null
+
+    res.success(filteredTrips, 'These are the required trips');
+  }).catch(error => {
+    res.error('An error occurred while retrieving trips:', error);
+  });
+};
 
 
 

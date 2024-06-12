@@ -14,28 +14,32 @@ const disk = require('../../../models/disk');
 const  sequelize = require('sequelize');
 const duration = require('../../../models/duration');
 const rating = require('../../../models/rating');
+const custumer = require('../../../models/custumer');
+
 
 
 const axios = require('axios')
-const moment = require('moment');
-const { required } = require('joi');
+const moment = require('moment-timezone');
+const { custom } = require('joi');
+const { admin } = require('../../notification/index');
 
 
 
 //for admin
 exports.addtrip = (req , res)=>{
     const tripDate  = req.body.tripDate;
-    const tripTime  = req.body.tripTime;
+    const tripTime  = req.body.tripTime
     const busid = req.body.busid;
     const starting = req.body.starting;
     const destination = req.body.destination;
-    const moment = require('moment');
-
-const currentTime = moment().format('HH:mm');
-const currentDate = moment().format('YYYY-MM-DD');
-if (tripDate < currentDate || (tripDate === currentDate && tripTime < currentTime)) {
-  return res.error('This date or time is in the past', 402);
-}
+    const isRecurring = req.body.isRecurring;
+    const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+    const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
+  
+   
+      if (tripDate < currentDate || (tripDate === currentDate && tripTime < currentTime)) {
+        return res.error('This date or time is in the past', 402);
+        }
 
     bus.findOne({
         where: { id: busid },
@@ -57,6 +61,7 @@ if (tripDate < currentDate || (tripDate === currentDate && tripTime < currentTim
             busId: busid,
             price: Math.floor((startleft.km * bus.typebus.price)/1000) * 1000 ,
             durationId: startleft.id,
+            isRecurring:isRecurring
           });
       
           const disks = [];
@@ -73,81 +78,131 @@ if (tripDate < currentDate || (tripDate === currentDate && tripTime < currentTim
       
           res.success({},'completed creating a  trip successfully')
         })
-        .catch((err) => {
-          res.error(err, 500);
-        });
+    
     }
 
 
     exports.deletetrip = (req, res) => {
       const id = req.params.id;
+      
+    
+      trip.findByPk(id)
+      
+        .then(trip => {
+          if(!trip){
+          return  res.error('this trip is not defined',404)
+          }
+          custumer.findAll({
+            attributes: ["fcmToken"],
+            include: [
+              {
+                model: disk,
+                where: { status: false, tripId: id }
+              }
+            ]
+          })
+            .then(customers => {
+              const formattedCustomers = customers.map(customer => {
+                return customer.fcmToken;
+              });
+    
+              const message = {
+                tokens: formattedCustomers,
+                notification: {
+                  title: "Canceled Trip",
+                  body: "Sorry, your next trip has been canceled."
+                }
+              };
+    
+              return admin.messaging().sendMulticast(message);
+            })
+            .then(response => {
+              const deleteDiskPromise = disk.destroy({ where: { tripId: trip.id } });
+              const deleteRatingPromise = rating.destroy({ where: { tripId: trip.id } });
+    
+              return Promise.all([deleteDiskPromise, deleteRatingPromise]);
+            })
+            .then(() => {
+              return trip.destroy();
+            })
+            .then(() => {
+              res.success( "Successfully deleted the trip and sent notifications!");
+            })
+            .catch(error => {
+              res.error("Failed to delete the trip or send notifications",500 );
+            });
+        })
+        .catch(error => {
+          res.error(error,500);
+        });
+    };
+
+
+    exports.updatetrip = (req, res) => {
+      const id = req.params.id;
+      const tripDate = req.body.tripDate;
+      const tripTime = req.body.tripTime;
+      const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD');
+      const currentTime = moment.tz('Asia/Damascus').format('HH:mm');
+    
+      if (tripDate < currentDate) {
+        return res.error('This date is old', 402);
+      } else {
+        if (tripDate === currentDate && tripTime < currentTime) {
+          return res.error('This time is old', 402);
+        }
+      }
     
       trip.findByPk(id).then(trip => {
         if (!trip) {
-          return res.error('the trip is not found' , 404)
+          return res.error('The trip is not found', 404);
         }
     
-        disk.destroy({ where: { tripId: trip.id } }).then(() => {
-
-         rating.destroy({ where: { tripId: trip.id } });
-        }).then(() => {
-
-           trip.destroy().then(() => {
-      
-            return res.success({} , 'complete delete the trip successfully')
-        
-        }).catch(error => {
-        return res.error(error , 500)
-        });
-      }).catch(error => {
-return res.error(error , 500)
-      });
-    }).catch(error => {
-      return res.error(error , 500)
+        custumer.findAll({
+          attributes: ['fcmToken'],
+          include: [
+            {
+              model: disk,
+              where: { status: false, tripId: id }
+            }
+          ]
+        })
+          .then(customers => {
+            const formattedCustomers = customers.map(customer => {
+              return customer.fcmToken;
             });
-  }
-
-exports.updatetrip = (req , res )=>{
-  const id = req.params.id;
-  const tripDate = req.body.tripDate;
-  const tripTime = req.body.tripTime;
-
-  const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
-        const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
+    console.log(formattedCustomers)
+            const message = {
+              notification: {
+                title: 'Updated Trip',
+                body: `Your next trip has been updated to ${tripDate} ${tripTime}.`
+              },
+              tokens: formattedCustomers
+            };
     
-//اذا كان التاريخ المدخل اصغر من تاريخ الوقت الحالي ارجع رسالة خطا
-  if (tripDate < currentDate) {
-    return res.error(' this date is old' ,  402);
-  } else{
-    if(tripDate == currentDate && tripTime < currentTime){
-      return res.error(' this time is old' ,  402);
-
-    }
-  } 
-  trip.findByPk(id).then(trip=>{
-    if (!trip) {
-      return res.error('the trip is not found' , 404)
-    }
-    trip.update({
-      tripDate:tripDate,
-      tripTime:tripTime
-    }).then(()=>{
-      return res.success({} , 'updated trip successfully')
-    })
-  })
-}
+            return admin.messaging().sendMulticast(message);
+          })
+         
+          .then(() => {
+            trip.update({
+              tripDate: tripDate,
+              tripTime: tripTime
+            }).then(() => {
+              return res.success({}, 'Updated trip successfully');
+            });
+          });
+      });
+    };
 
 exports.getbusbyorg = (req, res) => {
   const tripDate = req.body.tripDate; // التاريخ المدخل
   const tripTime = req.body.tripTime;
   const startings = req.body.starting;
   const destinations = req.body.destination;
-  axios.get('http://worldtimeapi.org/api/ip')
-  .then(response => {
-    const currentDateTime = response.data.datetime;
-    const currentDate = currentDateTime.slice(0, 10);
+  const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+  const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
 
-    const currentTime = moment().format('HH:mm');
+
  
   // إذا كان التاريخ المدخل أصغر من التاريخ الحالي أو إذا كان التاريخ المدخل يساوي التاريخ الحالي والوقت المدخل أصغر من الوقت الحالي
   if (tripDate < currentDate || (tripDate === currentDate && tripTime < currentTime)) {
@@ -181,7 +236,7 @@ exports.getbusbyorg = (req, res) => {
         ]
       }
     ],
-    where: { companyId: req.companies.companiesId },
+    where: { companyId: req.companies.companiesId , status:true },
     order: [[{ model: trip, as: 'trips' }, 'updatedAt', 'DESC']],
   })
     .then((buses) => {
@@ -227,10 +282,7 @@ exports.getbusbyorg = (req, res) => {
 
      return res.success(busNumbers);
     })
-  })
-    .catch((err) => {
-      res.error(err.message, 500);
-    });
+ 
 };
 
 

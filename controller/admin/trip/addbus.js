@@ -7,7 +7,7 @@ const typebus = require('../../../models/typebus');
 
 exports.getbuses = (req, res) => {
     const companiesId = req.companies.companiesId;
-    bus.findAll({ where: { companyId: companiesId }, attributes: ["id", "number", "driverId", "typebusId"] })
+    bus.findAll({ where: { companyId: companiesId  , status:true}, attributes: ["id", "number", "driverId", "typebusId"] })
       .then((buses) => {
         const busPromises = buses.map((bus) => {
           if (bus.driverId) {
@@ -90,6 +90,7 @@ exports.addbus = async (req, res) => {
         numofdisk: numofdisks.numofdisk,
         typebusId: numofdisks.id,
         driverId: driver,
+        status:true,
         companyId: companiesId,
         place:place
       });
@@ -103,7 +104,7 @@ exports.addbus = async (req, res) => {
 
   exports.updatebus = (req , res )=>{
     const driver = req.body.driver;
-const id =req.params.id;
+    const id =req.params.id;
     bus.findByPk(id).then(bus=>{
       console.log(bus)
       if (!bus) {
@@ -126,7 +127,7 @@ exports.deletebus = (req , res)=>{
             return res.error('Excuse me.. , this the bus is not exist' , 401)
 
         }
-    bus.destroy({where:{id:id}}).then(()=>{
+    bus.update({status:false},{ where: { id: id }}).then(()=>{
         return res.success({} , 'deleted bus successfully')
     }).catch(err=>{
         res.error(err , 500);

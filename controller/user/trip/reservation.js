@@ -10,6 +10,7 @@ const destination = require('../../../models/destination');
 const trip = require('../../../models/trip'); 
 const disk = require('../../../models/disk'); 
 const duration = require('../../../models/duration');
+const {admin} = require('../../notification/index')
 
 
 
@@ -19,7 +20,7 @@ const duration = require('../../../models/duration');
 exports.reservation = (req, res, next) => {
   const seats = req.body.seats;
   const id = req.params.id;
-
+  console.log(req.custumer.fcmToken)
   trip.findOne({ where: { id: id } })
     .then(trip => {
       disk.findAll({ where: { tripId: trip.id, numberdisk: seats } })
@@ -41,12 +42,23 @@ exports.reservation = (req, res, next) => {
                 return disk.update({ custumerId: customerId, status: false }, { where: { tripId: trip.id, numberdisk: seat.numberdisk } });
               });
 
-              return Promise.all(promises)
+              const message = {
+                token: req.custumer.fcmToken,
+                notification: {
+                  title: "Reservation Seats",
+                  body: `seats ${seats} has been successfully reserved`
+                }
+              };
+
+              return admin.messaging().send(message)
+                .then(() => {
+                  return Promise.all(promises);
+                })
                 .then(() => {
                   return res.success({}, 'Reservation completed successfully.');
                 })
                 .catch(err => {
-                  return res.error(err.message , 500);
+                  return res.error(err.message, 500);
                 });
             });
         });
@@ -71,11 +83,9 @@ exports.getreserveispaid = (req , res , next)=>{
           include:[
             {
               model:typebus,attributes:["type"]
-            }
-          ],
-          include: [
+            },
+          
             { model: companies, attributes: ["name"] },
-            { model: typebus, attributes: ["type"] }
           ]
         } ,
       
@@ -104,18 +114,15 @@ exports.getreserveispaid = (req , res , next)=>{
     ],
      
     attributes: {
-      exclude: ["updatedAt" , "createdAt" , "busId" , "startingId" , "destinationId"] 
+      exclude: ["updatedAt" , "createdAt"  , "startingId" , "destinationId"] 
     }
     })
       .then(trips => {
         
         const tripss = trips.map(trip => {
-          const startTime = trip.tripTime;
+
+         const startTime = trip.tripTime;
         const endTime = trip.duration.duration;
-        
-
-     
-
 
         const startHours = parseInt(startTime.split(':')[0]);
         const startMinutes = parseInt(startTime.split(':')[1]);
@@ -132,6 +139,7 @@ exports.getreserveispaid = (req , res , next)=>{
         const minutes = totalMinutes % 60;
         const totalTime = `${totalHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
           const numberdisksispaid = trip.disks.map(disk => disk.numberdisk);
+          if(trip.bus){
           return {
             id:trip.id,
             tripDate: trip.tripDate,
@@ -146,18 +154,19 @@ exports.getreserveispaid = (req , res , next)=>{
             arrivalTime:totalTime,
               numberdisksispaid 
           }
-        
+          }
         });
 
         if (tripss.length === 0) {
           return res.error("not found any seats that require payment.", 404);
         }
+        const filteredTrips = tripss.filter((trip) => trip !== undefined); // استبعاد القيم الـ null
        
-        res.success(tripss, "These are all your reservation which you are paid");
+        res.success(filteredTrips, "These are all your reservation which you are paid");
        
       })
       .catch(error => {
-        res.error(error , 500); 
+        res.error(error.message , 500); 
       });
     
 
@@ -183,10 +192,9 @@ exports.getreserveisnotpaid = (req , res , next)=>{
             {
               model:typebus,attributes:["type"]
             }
-          ],
-          include: [
+          
+          ,
             { model: companies, attributes: ["name"] },
-            { model: typebus, attributes: ["type"] }
           ]
         } ,
       
@@ -258,8 +266,9 @@ exports.getreserveisnotpaid = (req , res , next)=>{
               numberdisksisnotpaid
           };
         });
+        const filteredTrips = tripss.filter((trip) => trip !== undefined); // استبعاد القيم الـ null
        
-        res.success(tripss, "These are all reservation which you are not paid yet ");
+        res.success(filteredTrips, "These are all reservation which you are not paid yet ");
       })
       .catch(error => {
         res.error(error , 500); 

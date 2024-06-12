@@ -1,18 +1,18 @@
 
 const isauth = require('../../../middleware/isauth');
 const isorg = require('../../../middleware/isorg');
-const searchandFilter = require('../../../controller/user/trip/search_and_filter') ;
+const searchandFilter = require('../../../controller/trip/user/search_and_filter') ;
 const express = require('express');
 const router = express.Router();
 
 //البحث عن رحلات
-router.post('/search' ,isauth, searchandFilter.search);
+router.post('/search' , searchandFilter.search);
 
 //فلترة الرحلات عن طريق الشركة
-router.post('/searchbycompany' ,isauth, searchandFilter.filterbycompany);
+router.post('/searchbycompany' , searchandFilter.filterbycompany);
 
 //فلترة الرحلات عن طريق نوع الباص
-router.post('/searchbytypebus' ,isauth, searchandFilter.filterbytypebus);
+router.post('/searchbytypebus' , searchandFilter.filterbytypebus);
 
 
 
@@ -24,6 +24,6 @@ router.get('/getcities' , searchandFilter.getcities);
 router.get('/gettypebus' , searchandFilter.gettypebus);
 
 //جلب الشركات من اجل الفلترة
-router.get('/getcompanies' , isauth, searchandFilter.getcompanies);
+router.get('/getcompanies' , searchandFilter.getcompanies);
 
 module.exports = router;

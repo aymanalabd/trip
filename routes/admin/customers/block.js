@@ -7,6 +7,8 @@ const blockcon = require('../../../controller/admin/customers/block') ;
 
 
 router.post('/block/:id' ,isorg, blockcon.block);
+router.get('/disableCompanies' ,isauth, blockcon.disableCompanies);
+
 
 router.put('/cancleblock/:id',isorg , blockcon.cancleblock);
 

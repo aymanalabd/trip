@@ -15,7 +15,9 @@ const custumer = require('../../../models/custumer')
 const isBlock = require('../../../models/isBlock')
 const util = require('../../../util/helper');
 const { Op } = require('sequelize');
-  const moment = require('moment');
+  const moment = require('moment-timezone');
+  const axios = require('axios');
+
 
 
 
@@ -35,14 +37,23 @@ exports.getcities =(req,res)=>{
 
     //جلب جميع الشركات
     exports.getcompanies =(req,res)=>{
-      companies.findAll({attributes: {
-        exclude: ["updatedAt" , "createdAt" , "email" , "password"] 
-      }}).then(result=>{
-        
-      return res.success(result,"this is all companies")
-      }).catch(err=>{
-      return res.error(err,500)
+     isBlock
+      .findAll({ where: { custumerId: req.custumer.id, isblock: false } })
+      .then((isBlocks) => {
+        const companyIds = isBlocks.map((isBlock) => isBlock.companyId);
+        console.log(companyIds)
+        companies
+          .findAll({where:{id: {[Op.notIn]: companyIds}}})
+          .then((foundCompanies) => {
+            return res.success(foundCompanies);
+          })
+          .catch((err) => {
+            return res.error(err.message, 500);
+          });
       })
+      .catch((err) => {
+        return res.error(err.message, 500);
+      });
       }
 
       //جلب انواع الباصات
@@ -91,7 +102,9 @@ exports.getcities =(req,res)=>{
         group: ['trip.bus.company.name'],
       })
         .then((results) => {
+          console.log(results)
         const rr =  results.map(r=>{
+          console.log(r.trip)
     
            return {
            rating: r.dataValues.totalRating,
@@ -99,7 +112,6 @@ exports.getcities =(req,res)=>{
            count:r.dataValues.count
            
            }
-          // يمكنك التعامل مع نتائج الاستعلام هنا
         })
         return rr
       }).then(rate=>{
@@ -107,11 +119,11 @@ exports.getcities =(req,res)=>{
         const startingId = req.body.startingid;
         const destinationId = req.body.destinationid;
         const date = req.body.date;
-      
-        const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
-        const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
+        const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+        const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
     
-       
+      
+        
   if(date == currentDate){
 
         trip
@@ -198,9 +210,12 @@ exports.getcities =(req,res)=>{
       
             res.success(tripss, 'These are the required trips');
           })
+        
+      
           .catch((error) => {
             res.error(error, 500);
           });
+        
         }else{
           trip
           .findAll({
@@ -291,14 +306,10 @@ exports.getcities =(req,res)=>{
           });
         }
     
-        
+      
+      
+      
       })
-        .catch((error) => {
-          console.error(error);
-        });
-      
-      
-
     })
    
 
@@ -357,9 +368,9 @@ exports.getcities =(req,res)=>{
             const startingId = req.body.startingid;
             const destinationId = req.body.destinationid;
             const date = req.body.date;
-          
-            const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
-            const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
+       
+            const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+            const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
         
             if(date == currentDate){
             trip
@@ -542,13 +553,10 @@ exports.getcities =(req,res)=>{
               });
 
             }
-        
+          
             
+        
           })
-            .catch((error) => {
-              console.error(error);
-              // يمكنك التعامل مع الأخطاء هنا
-            });
           })
           
         }
@@ -602,9 +610,9 @@ exports.getcities =(req,res)=>{
             const startingId = req.body.startingid;
             const destinationId = req.body.destinationid;
             const date = req.body.date;
-          
-            const currentTime = moment().format('HH:mm'); // الوقت الحالي في صيغة ساعة:دقيقة
-            const currentDate = moment().format('YYYY-MM-DD'); // التاريخ الحالي في صيغة سنة-شهر-يوم
+        
+            const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
+            const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
         
             if(date == currentDate){
             trip
@@ -798,11 +806,8 @@ exports.getcities =(req,res)=>{
             }
         
             
+          
           })
-            .catch((error) => {
-              console.error(error);
-              // يمكنك التعامل مع الأخطاء هنا
-            });
           })
           
         }

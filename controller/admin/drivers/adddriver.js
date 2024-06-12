@@ -11,7 +11,7 @@ exports.adddrivers = (req, res) => {
   const { fullname, email, password, confirmpassword, phone } = req.body;
 
   if (password !== confirmpassword) {
-    return res.error("Passwords do not match");
+    return res.error("Passwords do not match" , 402);
   }
 
   const hashpassword = bcrypt.hashSync(password, 10);
@@ -20,7 +20,7 @@ exports.adddrivers = (req, res) => {
   driver.findOne({ where: { email: email } })
     .then((drivers) => {
       if (drivers) {
-        return res.error("Sorry, this driver already exists", 402);
+        return res.error("Exuse me, this driver already exists", 402);
       }
 
       driver

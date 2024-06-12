@@ -1,7 +1,8 @@
 const notcontroller = require('../../controller/notification/sendntification') ;
-const {admin} = require('../../controller/notification/index')
 const express = require('express');
 const router = express.Router();
+const admin = require("firebase-admin");
+
 
 
 
@@ -12,19 +13,12 @@ router.post('/sendnotification' , async (req, res) => {
     
 
     try {
-      const { title, body, tokens } = req.body;
-      await admin.messaging().sendMulticast({
-        fcmToken:"aymanalabd",
+      await admin.messaging().send({
+       token:"cNzgeK87SEaubXDB4Fjmgb:APA91bEqMhRLVFpl-UL8b1buFCbg73QX370g4KIZ34wHJ2kxzJ8Bs5J4rEUGAg3RXeaKAI7HtFza-AlsaLHTXvm_v-DoOm5dheNCguZc9t3TFXIrbQsT9z_4tJ7dNO12u3OrEeYRhgWS",
         notification: {
-          title,
-          body,
+          title:"this is title",
+          body:"this is body",
           
-        },
-        android: {
-          notification: {
-            sound: "file.mp3",
-            channel_id: "dooby_channel"
-          }
         }
       });
       res.status(200).json({ status: 200, message: "Successfully sent notifications!" });

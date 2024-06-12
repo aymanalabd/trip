@@ -21,6 +21,9 @@ const trip = sequelize.define('trip',{
     price:{
         type:Sequelize.FLOAT,
         allowNull:false,
+    },
+    isRecurring:{
+      type:Sequelize.BOOLEAN
     }
 })
 

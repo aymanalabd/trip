@@ -19,6 +19,9 @@ const bus = sequelize.define('bus',{
     },
     place:{
         type:Sequelize.STRING,
+    },
+    status:{
+        type:Sequelize.BOOLEAN,
     }
    
   

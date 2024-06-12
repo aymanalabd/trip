@@ -9,7 +9,7 @@ const  sequelize = require('sequelize');
 const duration = require('../../models/duration');
 const rating = require('../../models/rating'); 
 const custumer = require('../../models/custumer')
-var {admin} = require("./index");
+var admin = require("firebase-admin");
 
 
 
