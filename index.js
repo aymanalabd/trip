@@ -216,7 +216,7 @@ addtripauto();
 
 
 const canclereserveauto = () => {
-  cron.schedule('0,30 * * * *', () => {
+  cron.schedule('* * * * *', () => {
     const currentTime = moment().format('HH:mm');
     const currentDate = moment().format('YYYY-MM-DD');
 

@@ -28,18 +28,20 @@ const { admin } = require('../../notification/index');
 //for admin
 exports.addtrip = (req , res)=>{
     const tripDate  = req.body.tripDate;
-    const tripTime  = req.body.tripTime
+    let tripTime  = req.body.tripTime
     const busid = req.body.busid;
     const starting = req.body.starting;
     const destination = req.body.destination;
     const isRecurring = req.body.isRecurring;
     const currentDate = moment.tz('Asia/Damascus').format('YYYY-MM-DD')
     const currentTime =  moment.tz('Asia/Damascus').format('HH:mm')
-  
    
+    tripTime = moment(tripTime, 'HH:mm').format('HH:mm');
+
       if (tripDate < currentDate || (tripDate === currentDate && tripTime < currentTime)) {
         return res.error('This date or time is in the past', 402);
         }
+
 
     bus.findOne({
         where: { id: busid },
@@ -84,39 +86,43 @@ exports.addtrip = (req , res)=>{
 
     exports.deletetrip = (req, res) => {
       const id = req.params.id;
-      
     
       trip.findByPk(id)
-      
-        .then(trip => {
-          if(!trip){
-          return  res.error('this trip is not defined',404)
+        .then((trip) => {
+          if (!trip) {
+            return res.error('This trip is not defined', 404);
           }
-          custumer.findAll({
-            attributes: ["fcmToken"],
-            include: [
-              {
-                model: disk,
-                where: { status: false, tripId: id }
-              }
-            ]
-          })
-            .then(customers => {
-              const formattedCustomers = customers.map(customer => {
+    
+          custumer
+            .findAll({
+              attributes: ['fcmToken'],
+              include: [
+                {
+                  model: disk,
+                  where: { status: false, tripId: id },
+                },
+              ],
+            })
+            .then((customers) => {
+              const formattedCustomers = customers.map((customer) => {
                 return customer.fcmToken;
               });
     
-              const message = {
-                tokens: formattedCustomers,
-                notification: {
-                  title: "Canceled Trip",
-                  body: "Sorry, your next trip has been canceled."
-                }
-              };
+              if (formattedCustomers.length > 0) {
+                const message = {
+                  tokens: formattedCustomers,
+                  notification: {
+                    title: 'Canceled Trip',
+                    body: 'Sorry, your next trip has been canceled.',
+                  },
+                };
+                
+                return admin.messaging().sendEachForMulticast(message);
+              }
     
-              return admin.messaging().sendMulticast(message);
+              return Promise.resolve();
             })
-            .then(response => {
+            .then(() => {
               const deleteDiskPromise = disk.destroy({ where: { tripId: trip.id } });
               const deleteRatingPromise = rating.destroy({ where: { tripId: trip.id } });
     
@@ -126,17 +132,16 @@ exports.addtrip = (req , res)=>{
               return trip.destroy();
             })
             .then(() => {
-              res.success( "Successfully deleted the trip and sent notifications!");
+              res.success('Successfully deleted the trip and sent notifications!');
             })
-            .catch(error => {
-              res.error("Failed to delete the trip or send notifications",500 );
+            .catch((error) => {
+              res.error(error.message, 500);
             });
         })
-        .catch(error => {
-          res.error(error,500);
+        .catch((error) => {
+          res.error(error, 500);
         });
     };
-
 
     exports.updatetrip = (req, res) => {
       const id = req.params.id;
@@ -171,16 +176,21 @@ exports.addtrip = (req , res)=>{
             const formattedCustomers = customers.map(customer => {
               return customer.fcmToken;
             });
-    console.log(formattedCustomers)
-            const message = {
-              notification: {
-                title: 'Updated Trip',
-                body: `Your next trip has been updated to ${tripDate} ${tripTime}.`
-              },
-              tokens: formattedCustomers
-            };
-    
-            return admin.messaging().sendMulticast(message);
+
+            if (formattedCustomers.length > 0) {
+              const message = {
+                notification: {
+                  title: 'Updated Trip',
+                  body: `Your next trip has been updated to ${tripDate} ${tripTime}.`
+                },
+                tokens: formattedCustomers
+              };
+              
+              return admin.messaging().sendEachForMulticast(message);
+            }
+  
+            return Promise.resolve();
+ 
           })
          
           .then(() => {
