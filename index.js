@@ -355,6 +355,32 @@ bus.belongsTo(driver);
 companies.hasMany(bus);
 bus.belongsTo(companies);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //العلاقة بين الرحلة والمحافظة
 duration.hasMany(trip);
 trip.belongsTo(duration);
