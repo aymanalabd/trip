@@ -1,6 +1,4 @@
-const config = require('dotenv').config();
-const express = require('express');
-const val = require('express-validator')
+
 const bodyparser = require('body-parser')
 const sequelize = require('./conn/conn');
 const moment = require('moment')
